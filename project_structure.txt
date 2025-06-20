@@ -1,0 +1,859 @@
+.
+├── ./README.md
+├── ./backend
+│   ├── ./backend/Dockerfile
+│   ├── ./backend/api
+│   ├── ./backend/app
+│   │   ├── ./backend/app/__pycache__
+│   │   │   └── ./backend/app/__pycache__/main.cpython-311.pyc
+│   │   └── ./backend/app/main.py
+│   ├── ./backend/config.py
+│   ├── ./backend/crud.py
+│   ├── ./backend/db.py
+│   ├── ./backend/models
+│   │   ├── ./backend/models/admin.py
+│   │   ├── ./backend/models/base.py
+│   │   ├── ./backend/models/category.py
+│   │   ├── ./backend/models/drink.py
+│   │   ├── ./backend/models/drink_image.py
+│   │   ├── ./backend/models/enums.py
+│   │   └── ./backend/models/order.py
+│   └── ./backend/requirements.txt
+├── ./db
+│   └── ./db/init.sql
+├── ./docker-compose.yml
+├── ./frontend
+│   ├── ./frontend/Dockerfile
+│   ├── ./frontend/README.md
+│   ├── ./frontend/index.html
+│   ├── ./frontend/node_modules
+│   │   ├── ./frontend/node_modules/@babel
+│   │   │   ├── ./frontend/node_modules/@babel/helper-string-parser
+│   │   │   │   ├── ./frontend/node_modules/@babel/helper-string-parser/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@babel/helper-string-parser/README.md
+│   │   │   │   ├── ./frontend/node_modules/@babel/helper-string-parser/lib
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/helper-string-parser/lib/index.js
+│   │   │   │   │   └── ./frontend/node_modules/@babel/helper-string-parser/lib/index.js.map
+│   │   │   │   └── ./frontend/node_modules/@babel/helper-string-parser/package.json
+│   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier
+│   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/README.md
+│   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/lib
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/lib/identifier.js
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/lib/identifier.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/lib/index.js
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/lib/index.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/helper-validator-identifier/lib/keyword.js
+│   │   │   │   │   └── ./frontend/node_modules/@babel/helper-validator-identifier/lib/keyword.js.map
+│   │   │   │   └── ./frontend/node_modules/@babel/helper-validator-identifier/package.json
+│   │   │   ├── ./frontend/node_modules/@babel/parser
+│   │   │   │   ├── ./frontend/node_modules/@babel/parser/CHANGELOG.md
+│   │   │   │   ├── ./frontend/node_modules/@babel/parser/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@babel/parser/README.md
+│   │   │   │   ├── ./frontend/node_modules/@babel/parser/bin
+│   │   │   │   │   └── ./frontend/node_modules/@babel/parser/bin/babel-parser.js
+│   │   │   │   ├── ./frontend/node_modules/@babel/parser/lib
+│   │   │   │   │   ├── ./frontend/node_modules/@babel/parser/lib/index.js
+│   │   │   │   │   └── ./frontend/node_modules/@babel/parser/lib/index.js.map
+│   │   │   │   ├── ./frontend/node_modules/@babel/parser/package.json
+│   │   │   │   └── ./frontend/node_modules/@babel/parser/typings
+│   │   │   │       └── ./frontend/node_modules/@babel/parser/typings/babel-parser.d.ts
+│   │   │   └── ./frontend/node_modules/@babel/types
+│   │   │       ├── ./frontend/node_modules/@babel/types/LICENSE
+│   │   │       ├── ./frontend/node_modules/@babel/types/README.md
+│   │   │       ├── ./frontend/node_modules/@babel/types/lib
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/asserts
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/asserts/assertNode.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/asserts/assertNode.js.map
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/asserts/generated
+│   │   │       │   │       ├── ./frontend/node_modules/@babel/types/lib/asserts/generated/index.js
+│   │   │       │   │       └── ./frontend/node_modules/@babel/types/lib/asserts/generated/index.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/ast-types
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/ast-types/generated
+│   │   │       │   │       ├── ./frontend/node_modules/@babel/types/lib/ast-types/generated/index.js
+│   │   │       │   │       └── ./frontend/node_modules/@babel/types/lib/ast-types/generated/index.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/builders
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/flow
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/flow/createFlowUnionType.js
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/flow/createFlowUnionType.js.map
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/flow/createTypeAnnotationBasedOnTypeof.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/builders/flow/createTypeAnnotationBasedOnTypeof.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/generated
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/generated/index.js
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/generated/index.js.map
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/generated/lowercase.js
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/generated/lowercase.js.map
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/generated/uppercase.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/builders/generated/uppercase.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/productions.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/productions.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/react
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/react/buildChildren.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/builders/react/buildChildren.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/typescript
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/typescript/createTSUnionType.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/builders/typescript/createTSUnionType.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/builders/validateNode.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/builders/validateNode.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/clone
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/clone.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/clone.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneDeep.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneDeep.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneDeepWithoutLoc.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneDeepWithoutLoc.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneNode.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneNode.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/clone/cloneWithoutLoc.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/clone/cloneWithoutLoc.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/comments
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/addComment.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/addComment.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/addComments.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/addComments.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritInnerComments.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritInnerComments.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritLeadingComments.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritLeadingComments.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritTrailingComments.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritTrailingComments.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritsComments.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/inheritsComments.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/comments/removeComments.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/comments/removeComments.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/constants
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/constants/generated
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/constants/generated/index.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/constants/generated/index.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/constants/index.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/constants/index.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/converters
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/ensureBlock.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/ensureBlock.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/gatherSequenceExpressions.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/gatherSequenceExpressions.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toBindingIdentifierName.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toBindingIdentifierName.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toBlock.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toBlock.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toComputedKey.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toComputedKey.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toExpression.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toExpression.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toIdentifier.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toIdentifier.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toKeyAlias.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toKeyAlias.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toSequenceExpression.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toSequenceExpression.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toStatement.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/toStatement.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/converters/valueToNode.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/converters/valueToNode.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/definitions
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/core.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/core.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/deprecated-aliases.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/deprecated-aliases.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/experimental.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/experimental.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/flow.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/flow.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/index.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/index.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/jsx.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/jsx.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/misc.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/misc.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/placeholders.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/placeholders.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/typescript.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/typescript.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/definitions/utils.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/definitions/utils.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/index-legacy.d.ts
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/index.d.ts
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/index.js
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/index.js.flow
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/index.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/modifications
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/appendToMemberExpression.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/appendToMemberExpression.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/flow
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/flow/removeTypeDuplicates.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/modifications/flow/removeTypeDuplicates.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/inherits.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/inherits.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/prependToMemberExpression.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/prependToMemberExpression.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/removeProperties.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/removeProperties.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/removePropertiesDeep.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/modifications/removePropertiesDeep.js.map
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/modifications/typescript
+│   │   │       │   │       ├── ./frontend/node_modules/@babel/types/lib/modifications/typescript/removeTypeDuplicates.js
+│   │   │       │   │       └── ./frontend/node_modules/@babel/types/lib/modifications/typescript/removeTypeDuplicates.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/retrievers
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getAssignmentIdentifiers.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getAssignmentIdentifiers.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getBindingIdentifiers.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getBindingIdentifiers.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getFunctionName.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getFunctionName.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/retrievers/getOuterBindingIdentifiers.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/retrievers/getOuterBindingIdentifiers.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/traverse
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/traverse/traverse.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/traverse/traverse.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/traverse/traverseFast.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/traverse/traverseFast.js.map
+│   │   │       │   ├── ./frontend/node_modules/@babel/types/lib/utils
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/deprecationWarning.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/deprecationWarning.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/inherit.js
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/inherit.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/react
+│   │   │       │   │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/react/cleanJSXElementLiteralChild.js
+│   │   │       │   │   │   └── ./frontend/node_modules/@babel/types/lib/utils/react/cleanJSXElementLiteralChild.js.map
+│   │   │       │   │   ├── ./frontend/node_modules/@babel/types/lib/utils/shallowEqual.js
+│   │   │       │   │   └── ./frontend/node_modules/@babel/types/lib/utils/shallowEqual.js.map
+│   │   │       │   └── ./frontend/node_modules/@babel/types/lib/validators
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/buildMatchMemberExpression.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/buildMatchMemberExpression.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/generated
+│   │   │       │       │   ├── ./frontend/node_modules/@babel/types/lib/validators/generated/index.js
+│   │   │       │       │   └── ./frontend/node_modules/@babel/types/lib/validators/generated/index.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/is.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/is.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isBinding.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isBinding.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isBlockScoped.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isBlockScoped.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isImmutable.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isImmutable.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isLet.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isLet.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isNode.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isNode.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isNodesEquivalent.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isNodesEquivalent.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isPlaceholderType.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isPlaceholderType.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isReferenced.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isReferenced.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isScope.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isScope.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isSpecifierDefault.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isSpecifierDefault.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isType.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isType.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isValidES3Identifier.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isValidES3Identifier.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isValidIdentifier.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isValidIdentifier.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isVar.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/isVar.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/matchesPattern.js
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/matchesPattern.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/react
+│   │   │       │       │   ├── ./frontend/node_modules/@babel/types/lib/validators/react/isCompatTag.js
+│   │   │       │       │   ├── ./frontend/node_modules/@babel/types/lib/validators/react/isCompatTag.js.map
+│   │   │       │       │   ├── ./frontend/node_modules/@babel/types/lib/validators/react/isReactComponent.js
+│   │   │       │       │   └── ./frontend/node_modules/@babel/types/lib/validators/react/isReactComponent.js.map
+│   │   │       │       ├── ./frontend/node_modules/@babel/types/lib/validators/validate.js
+│   │   │       │       └── ./frontend/node_modules/@babel/types/lib/validators/validate.js.map
+│   │   │       └── ./frontend/node_modules/@babel/types/package.json
+│   │   ├── ./frontend/node_modules/@esbuild
+│   │   │   └── ./frontend/node_modules/@esbuild/linux-x64
+│   │   │       ├── ./frontend/node_modules/@esbuild/linux-x64/README.md
+│   │   │       ├── ./frontend/node_modules/@esbuild/linux-x64/bin
+│   │   │       │   └── ./frontend/node_modules/@esbuild/linux-x64/bin/esbuild
+│   │   │       └── ./frontend/node_modules/@esbuild/linux-x64/package.json
+│   │   ├── ./frontend/node_modules/@jridgewell
+│   │   │   └── ./frontend/node_modules/@jridgewell/sourcemap-codec
+│   │   │       ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/LICENSE
+│   │   │       ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/README.md
+│   │   │       ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist
+│   │   │       │   ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs
+│   │   │       │   ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs.map
+│   │   │       │   ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.umd.js
+│   │   │       │   ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.umd.js.map
+│   │   │       │   └── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/types
+│   │   │       │       ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/types/scopes.d.ts
+│   │   │       │       ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/types/sourcemap-codec.d.ts
+│   │   │       │       ├── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/types/strings.d.ts
+│   │   │       │       └── ./frontend/node_modules/@jridgewell/sourcemap-codec/dist/types/vlq.d.ts
+│   │   │       └── ./frontend/node_modules/@jridgewell/sourcemap-codec/package.json
+│   │   ├── ./frontend/node_modules/@rollup
+│   │   │   └── ./frontend/node_modules/@rollup/rollup-linux-x64-gnu
+│   │   │       ├── ./frontend/node_modules/@rollup/rollup-linux-x64-gnu/README.md
+│   │   │       ├── ./frontend/node_modules/@rollup/rollup-linux-x64-gnu/package.json
+│   │   │       └── ./frontend/node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node
+│   │   ├── ./frontend/node_modules/@types
+│   │   │   └── ./frontend/node_modules/@types/estree
+│   │   │       ├── ./frontend/node_modules/@types/estree/LICENSE
+│   │   │       ├── ./frontend/node_modules/@types/estree/README.md
+│   │   │       ├── ./frontend/node_modules/@types/estree/flow.d.ts
+│   │   │       ├── ./frontend/node_modules/@types/estree/index.d.ts
+│   │   │       └── ./frontend/node_modules/@types/estree/package.json
+│   │   ├── ./frontend/node_modules/@vitejs
+│   │   │   └── ./frontend/node_modules/@vitejs/plugin-vue
+│   │   │       ├── ./frontend/node_modules/@vitejs/plugin-vue/LICENSE
+│   │   │       ├── ./frontend/node_modules/@vitejs/plugin-vue/README.md
+│   │   │       ├── ./frontend/node_modules/@vitejs/plugin-vue/dist
+│   │   │       │   ├── ./frontend/node_modules/@vitejs/plugin-vue/dist/index.cjs
+│   │   │       │   ├── ./frontend/node_modules/@vitejs/plugin-vue/dist/index.d.cts
+│   │   │       │   ├── ./frontend/node_modules/@vitejs/plugin-vue/dist/index.d.mts
+│   │   │       │   ├── ./frontend/node_modules/@vitejs/plugin-vue/dist/index.d.ts
+│   │   │       │   └── ./frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs
+│   │   │       └── ./frontend/node_modules/@vitejs/plugin-vue/package.json
+│   │   ├── ./frontend/node_modules/@vue
+│   │   │   ├── ./frontend/node_modules/@vue/compiler-core
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/dist/compiler-core.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/dist/compiler-core.cjs.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
+│   │   │   │   │   └── ./frontend/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-core/index.js
+│   │   │   │   └── ./frontend/node_modules/@vue/compiler-core/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/compiler-dom
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.cjs.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-browser.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-browser.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.esm-bundler.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.global.js
+│   │   │   │   │   └── ./frontend/node_modules/@vue/compiler-dom/dist/compiler-dom.global.prod.js
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-dom/index.js
+│   │   │   │   └── ./frontend/node_modules/@vue/compiler-dom/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/compiler-sfc
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-sfc/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-sfc/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-sfc/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-sfc/dist/compiler-sfc.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-sfc/dist/compiler-sfc.d.ts
+│   │   │   │   │   └── ./frontend/node_modules/@vue/compiler-sfc/dist/compiler-sfc.esm-browser.js
+│   │   │   │   └── ./frontend/node_modules/@vue/compiler-sfc/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/compiler-ssr
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-ssr/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-ssr/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/compiler-ssr/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/compiler-ssr/dist/compiler-ssr.cjs.js
+│   │   │   │   │   └── ./frontend/node_modules/@vue/compiler-ssr/dist/compiler-ssr.d.ts
+│   │   │   │   └── ./frontend/node_modules/@vue/compiler-ssr/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/reactivity
+│   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.cjs.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.esm-browser.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.esm-browser.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/dist/reactivity.global.js
+│   │   │   │   │   └── ./frontend/node_modules/@vue/reactivity/dist/reactivity.global.prod.js
+│   │   │   │   ├── ./frontend/node_modules/@vue/reactivity/index.js
+│   │   │   │   └── ./frontend/node_modules/@vue/reactivity/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/runtime-core
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/dist/runtime-core.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/dist/runtime-core.cjs.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/dist/runtime-core.d.ts
+│   │   │   │   │   └── ./frontend/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-core/index.js
+│   │   │   │   └── ./frontend/node_modules/@vue/runtime-core/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/runtime-dom
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.cjs.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-browser.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.global.js
+│   │   │   │   │   └── ./frontend/node_modules/@vue/runtime-dom/dist/runtime-dom.global.prod.js
+│   │   │   │   ├── ./frontend/node_modules/@vue/runtime-dom/index.js
+│   │   │   │   └── ./frontend/node_modules/@vue/runtime-dom/package.json
+│   │   │   ├── ./frontend/node_modules/@vue/server-renderer
+│   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/LICENSE
+│   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/README.md
+│   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/dist
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/dist/server-renderer.cjs.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/dist/server-renderer.cjs.prod.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/dist/server-renderer.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/dist/server-renderer.esm-browser.js
+│   │   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/dist/server-renderer.esm-browser.prod.js
+│   │   │   │   │   └── ./frontend/node_modules/@vue/server-renderer/dist/server-renderer.esm-bundler.js
+│   │   │   │   ├── ./frontend/node_modules/@vue/server-renderer/index.js
+│   │   │   │   └── ./frontend/node_modules/@vue/server-renderer/package.json
+│   │   │   └── ./frontend/node_modules/@vue/shared
+│   │   │       ├── ./frontend/node_modules/@vue/shared/LICENSE
+│   │   │       ├── ./frontend/node_modules/@vue/shared/README.md
+│   │   │       ├── ./frontend/node_modules/@vue/shared/dist
+│   │   │       │   ├── ./frontend/node_modules/@vue/shared/dist/shared.cjs.js
+│   │   │       │   ├── ./frontend/node_modules/@vue/shared/dist/shared.cjs.prod.js
+│   │   │       │   ├── ./frontend/node_modules/@vue/shared/dist/shared.d.ts
+│   │   │       │   └── ./frontend/node_modules/@vue/shared/dist/shared.esm-bundler.js
+│   │   │       ├── ./frontend/node_modules/@vue/shared/index.js
+│   │   │       └── ./frontend/node_modules/@vue/shared/package.json
+│   │   ├── ./frontend/node_modules/csstype
+│   │   │   ├── ./frontend/node_modules/csstype/LICENSE
+│   │   │   ├── ./frontend/node_modules/csstype/README.md
+│   │   │   ├── ./frontend/node_modules/csstype/index.d.ts
+│   │   │   ├── ./frontend/node_modules/csstype/index.js.flow
+│   │   │   └── ./frontend/node_modules/csstype/package.json
+│   │   ├── ./frontend/node_modules/entities
+│   │   │   ├── ./frontend/node_modules/entities/LICENSE
+│   │   │   ├── ./frontend/node_modules/entities/lib
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode.d.ts
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode.d.ts.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode.js
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode.js.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode_codepoint.d.ts
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode_codepoint.d.ts.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode_codepoint.js
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/decode_codepoint.js.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/encode.d.ts
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/encode.d.ts.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/encode.js
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/encode.js.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/escape.d.ts
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/escape.d.ts.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/escape.js
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/escape.js.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/esm
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode_codepoint.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode_codepoint.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode_codepoint.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/decode_codepoint.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/encode.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/encode.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/encode.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/encode.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/escape.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/escape.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/escape.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/escape.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-html.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-html.d.ts.map
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-html.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-html.js.map
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-xml.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-xml.d.ts.map
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-xml.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/decode-data-xml.js.map
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/encode-html.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/encode-html.d.ts.map
+│   │   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/generated/encode-html.js
+│   │   │   │   │   │   └── ./frontend/node_modules/entities/lib/esm/generated/encode-html.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/index.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/index.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/index.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/esm/index.js.map
+│   │   │   │   │   └── ./frontend/node_modules/entities/lib/esm/package.json
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/generated
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-html.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-html.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-html.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-html.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-xml.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-xml.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-xml.js
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/decode-data-xml.js.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/encode-html.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/encode-html.d.ts.map
+│   │   │   │   │   ├── ./frontend/node_modules/entities/lib/generated/encode-html.js
+│   │   │   │   │   └── ./frontend/node_modules/entities/lib/generated/encode-html.js.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/index.d.ts
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/index.d.ts.map
+│   │   │   │   ├── ./frontend/node_modules/entities/lib/index.js
+│   │   │   │   └── ./frontend/node_modules/entities/lib/index.js.map
+│   │   │   ├── ./frontend/node_modules/entities/package.json
+│   │   │   └── ./frontend/node_modules/entities/readme.md
+│   │   ├── ./frontend/node_modules/esbuild
+│   │   │   ├── ./frontend/node_modules/esbuild/LICENSE.md
+│   │   │   ├── ./frontend/node_modules/esbuild/README.md
+│   │   │   ├── ./frontend/node_modules/esbuild/bin
+│   │   │   │   └── ./frontend/node_modules/esbuild/bin/esbuild
+│   │   │   ├── ./frontend/node_modules/esbuild/install.js
+│   │   │   ├── ./frontend/node_modules/esbuild/lib
+│   │   │   │   ├── ./frontend/node_modules/esbuild/lib/main.d.ts
+│   │   │   │   └── ./frontend/node_modules/esbuild/lib/main.js
+│   │   │   └── ./frontend/node_modules/esbuild/package.json
+│   │   ├── ./frontend/node_modules/estree-walker
+│   │   │   ├── ./frontend/node_modules/estree-walker/CHANGELOG.md
+│   │   │   ├── ./frontend/node_modules/estree-walker/LICENSE
+│   │   │   ├── ./frontend/node_modules/estree-walker/README.md
+│   │   │   ├── ./frontend/node_modules/estree-walker/dist
+│   │   │   │   ├── ./frontend/node_modules/estree-walker/dist/esm
+│   │   │   │   │   ├── ./frontend/node_modules/estree-walker/dist/esm/estree-walker.js
+│   │   │   │   │   └── ./frontend/node_modules/estree-walker/dist/esm/package.json
+│   │   │   │   └── ./frontend/node_modules/estree-walker/dist/umd
+│   │   │   │       └── ./frontend/node_modules/estree-walker/dist/umd/estree-walker.js
+│   │   │   ├── ./frontend/node_modules/estree-walker/package.json
+│   │   │   ├── ./frontend/node_modules/estree-walker/src
+│   │   │   │   ├── ./frontend/node_modules/estree-walker/src/async.js
+│   │   │   │   ├── ./frontend/node_modules/estree-walker/src/index.js
+│   │   │   │   ├── ./frontend/node_modules/estree-walker/src/package.json
+│   │   │   │   ├── ./frontend/node_modules/estree-walker/src/sync.js
+│   │   │   │   └── ./frontend/node_modules/estree-walker/src/walker.js
+│   │   │   └── ./frontend/node_modules/estree-walker/types
+│   │   │       ├── ./frontend/node_modules/estree-walker/types/async.d.ts
+│   │   │       ├── ./frontend/node_modules/estree-walker/types/index.d.ts
+│   │   │       ├── ./frontend/node_modules/estree-walker/types/sync.d.ts
+│   │   │       ├── ./frontend/node_modules/estree-walker/types/tsconfig.tsbuildinfo
+│   │   │       └── ./frontend/node_modules/estree-walker/types/walker.d.ts
+│   │   ├── ./frontend/node_modules/fdir
+│   │   │   ├── ./frontend/node_modules/fdir/LICENSE
+│   │   │   ├── ./frontend/node_modules/fdir/README.md
+│   │   │   ├── ./frontend/node_modules/fdir/dist
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/api
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/async.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/async.js
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/counter.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/counter.js
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/get-array.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/get-array.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/group-files.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/group-files.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/invoke-callback.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/invoke-callback.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/join-path.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/join-path.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/push-directory.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/push-directory.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/push-file.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/push-file.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/resolve-symlink.d.ts
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/resolve-symlink.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/functions/walk-directory.d.ts
+│   │   │   │   │   │   └── ./frontend/node_modules/fdir/dist/api/functions/walk-directory.js
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/queue.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/queue.js
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/sync.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/sync.js
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/api/walker.d.ts
+│   │   │   │   │   └── ./frontend/node_modules/fdir/dist/api/walker.js
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/builder
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/builder/api-builder.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/builder/api-builder.js
+│   │   │   │   │   ├── ./frontend/node_modules/fdir/dist/builder/index.d.ts
+│   │   │   │   │   └── ./frontend/node_modules/fdir/dist/builder/index.js
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/index.cjs
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/index.d.cts
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/index.d.mts
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/index.d.ts
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/index.js
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/index.mjs
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/types.d.ts
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/types.js
+│   │   │   │   ├── ./frontend/node_modules/fdir/dist/utils.d.ts
+│   │   │   │   └── ./frontend/node_modules/fdir/dist/utils.js
+│   │   │   └── ./frontend/node_modules/fdir/package.json
+│   │   ├── ./frontend/node_modules/magic-string
+│   │   │   ├── ./frontend/node_modules/magic-string/LICENSE
+│   │   │   ├── ./frontend/node_modules/magic-string/README.md
+│   │   │   ├── ./frontend/node_modules/magic-string/dist
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.cjs.d.ts
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.cjs.js
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.cjs.js.map
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.es.d.mts
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.es.mjs
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.es.mjs.map
+│   │   │   │   ├── ./frontend/node_modules/magic-string/dist/magic-string.umd.js
+│   │   │   │   └── ./frontend/node_modules/magic-string/dist/magic-string.umd.js.map
+│   │   │   └── ./frontend/node_modules/magic-string/package.json
+│   │   ├── ./frontend/node_modules/nanoid
+│   │   │   ├── ./frontend/node_modules/nanoid/LICENSE
+│   │   │   ├── ./frontend/node_modules/nanoid/README.md
+│   │   │   ├── ./frontend/node_modules/nanoid/async
+│   │   │   │   ├── ./frontend/node_modules/nanoid/async/index.browser.cjs
+│   │   │   │   ├── ./frontend/node_modules/nanoid/async/index.browser.js
+│   │   │   │   ├── ./frontend/node_modules/nanoid/async/index.cjs
+│   │   │   │   ├── ./frontend/node_modules/nanoid/async/index.d.ts
+│   │   │   │   ├── ./frontend/node_modules/nanoid/async/index.js
+│   │   │   │   ├── ./frontend/node_modules/nanoid/async/index.native.js
+│   │   │   │   └── ./frontend/node_modules/nanoid/async/package.json
+│   │   │   ├── ./frontend/node_modules/nanoid/bin
+│   │   │   │   └── ./frontend/node_modules/nanoid/bin/nanoid.cjs
+│   │   │   ├── ./frontend/node_modules/nanoid/index.browser.cjs
+│   │   │   ├── ./frontend/node_modules/nanoid/index.browser.js
+│   │   │   ├── ./frontend/node_modules/nanoid/index.cjs
+│   │   │   ├── ./frontend/node_modules/nanoid/index.d.cts
+│   │   │   ├── ./frontend/node_modules/nanoid/index.d.ts
+│   │   │   ├── ./frontend/node_modules/nanoid/index.js
+│   │   │   ├── ./frontend/node_modules/nanoid/nanoid.js
+│   │   │   ├── ./frontend/node_modules/nanoid/non-secure
+│   │   │   │   ├── ./frontend/node_modules/nanoid/non-secure/index.cjs
+│   │   │   │   ├── ./frontend/node_modules/nanoid/non-secure/index.d.ts
+│   │   │   │   ├── ./frontend/node_modules/nanoid/non-secure/index.js
+│   │   │   │   └── ./frontend/node_modules/nanoid/non-secure/package.json
+│   │   │   ├── ./frontend/node_modules/nanoid/package.json
+│   │   │   └── ./frontend/node_modules/nanoid/url-alphabet
+│   │   │       ├── ./frontend/node_modules/nanoid/url-alphabet/index.cjs
+│   │   │       ├── ./frontend/node_modules/nanoid/url-alphabet/index.js
+│   │   │       └── ./frontend/node_modules/nanoid/url-alphabet/package.json
+│   │   ├── ./frontend/node_modules/picocolors
+│   │   │   ├── ./frontend/node_modules/picocolors/LICENSE
+│   │   │   ├── ./frontend/node_modules/picocolors/README.md
+│   │   │   ├── ./frontend/node_modules/picocolors/package.json
+│   │   │   ├── ./frontend/node_modules/picocolors/picocolors.browser.js
+│   │   │   ├── ./frontend/node_modules/picocolors/picocolors.d.ts
+│   │   │   ├── ./frontend/node_modules/picocolors/picocolors.js
+│   │   │   └── ./frontend/node_modules/picocolors/types.d.ts
+│   │   ├── ./frontend/node_modules/picomatch
+│   │   │   ├── ./frontend/node_modules/picomatch/LICENSE
+│   │   │   ├── ./frontend/node_modules/picomatch/README.md
+│   │   │   ├── ./frontend/node_modules/picomatch/index.js
+│   │   │   ├── ./frontend/node_modules/picomatch/lib
+│   │   │   │   ├── ./frontend/node_modules/picomatch/lib/constants.js
+│   │   │   │   ├── ./frontend/node_modules/picomatch/lib/parse.js
+│   │   │   │   ├── ./frontend/node_modules/picomatch/lib/picomatch.js
+│   │   │   │   ├── ./frontend/node_modules/picomatch/lib/scan.js
+│   │   │   │   └── ./frontend/node_modules/picomatch/lib/utils.js
+│   │   │   ├── ./frontend/node_modules/picomatch/package.json
+│   │   │   └── ./frontend/node_modules/picomatch/posix.js
+│   │   ├── ./frontend/node_modules/postcss
+│   │   │   ├── ./frontend/node_modules/postcss/LICENSE
+│   │   │   ├── ./frontend/node_modules/postcss/README.md
+│   │   │   ├── ./frontend/node_modules/postcss/lib
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/at-rule.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/at-rule.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/comment.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/comment.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/container.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/container.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/css-syntax-error.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/css-syntax-error.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/declaration.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/declaration.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/document.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/document.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/fromJSON.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/fromJSON.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/input.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/input.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/lazy-result.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/lazy-result.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/list.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/list.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/map-generator.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/no-work-result.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/no-work-result.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/node.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/node.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/parse.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/parse.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/parser.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/postcss.d.mts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/postcss.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/postcss.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/postcss.mjs
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/previous-map.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/previous-map.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/processor.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/processor.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/result.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/result.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/root.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/root.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/rule.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/rule.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/stringifier.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/stringifier.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/stringify.d.ts
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/stringify.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/symbols.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/terminal-highlight.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/tokenize.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/warn-once.js
+│   │   │   │   ├── ./frontend/node_modules/postcss/lib/warning.d.ts
+│   │   │   │   └── ./frontend/node_modules/postcss/lib/warning.js
+│   │   │   └── ./frontend/node_modules/postcss/package.json
+│   │   ├── ./frontend/node_modules/rollup
+│   │   │   ├── ./frontend/node_modules/rollup/LICENSE.md
+│   │   │   ├── ./frontend/node_modules/rollup/README.md
+│   │   │   ├── ./frontend/node_modules/rollup/dist
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/bin
+│   │   │   │   │   └── ./frontend/node_modules/rollup/dist/bin/rollup
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/es
+│   │   │   │   │   ├── ./frontend/node_modules/rollup/dist/es/getLogFilter.js
+│   │   │   │   │   ├── ./frontend/node_modules/rollup/dist/es/package.json
+│   │   │   │   │   ├── ./frontend/node_modules/rollup/dist/es/parseAst.js
+│   │   │   │   │   ├── ./frontend/node_modules/rollup/dist/es/rollup.js
+│   │   │   │   │   └── ./frontend/node_modules/rollup/dist/es/shared
+│   │   │   │   │       ├── ./frontend/node_modules/rollup/dist/es/shared/node-entry.js
+│   │   │   │   │       ├── ./frontend/node_modules/rollup/dist/es/shared/parseAst.js
+│   │   │   │   │       └── ./frontend/node_modules/rollup/dist/es/shared/watch.js
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/getLogFilter.d.ts
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/getLogFilter.js
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/loadConfigFile.d.ts
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/loadConfigFile.js
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/native.js
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/parseAst.d.ts
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/parseAst.js
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/rollup.d.ts
+│   │   │   │   ├── ./frontend/node_modules/rollup/dist/rollup.js
+│   │   │   │   └── ./frontend/node_modules/rollup/dist/shared
+│   │   │   │       ├── ./frontend/node_modules/rollup/dist/shared/fsevents-importer.js
+│   │   │   │       ├── ./frontend/node_modules/rollup/dist/shared/index.js
+│   │   │   │       ├── ./frontend/node_modules/rollup/dist/shared/loadConfigFile.js
+│   │   │   │       ├── ./frontend/node_modules/rollup/dist/shared/parseAst.js
+│   │   │   │       ├── ./frontend/node_modules/rollup/dist/shared/rollup.js
+│   │   │   │       ├── ./frontend/node_modules/rollup/dist/shared/watch-cli.js
+│   │   │   │       └── ./frontend/node_modules/rollup/dist/shared/watch.js
+│   │   │   └── ./frontend/node_modules/rollup/package.json
+│   │   ├── ./frontend/node_modules/source-map-js
+│   │   │   ├── ./frontend/node_modules/source-map-js/LICENSE
+│   │   │   ├── ./frontend/node_modules/source-map-js/README.md
+│   │   │   ├── ./frontend/node_modules/source-map-js/lib
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/array-set.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/base64-vlq.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/base64.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/binary-search.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/mapping-list.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/quick-sort.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/source-map-consumer.d.ts
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/source-map-consumer.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/source-map-generator.d.ts
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/source-map-generator.js
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/source-node.d.ts
+│   │   │   │   ├── ./frontend/node_modules/source-map-js/lib/source-node.js
+│   │   │   │   └── ./frontend/node_modules/source-map-js/lib/util.js
+│   │   │   ├── ./frontend/node_modules/source-map-js/package.json
+│   │   │   ├── ./frontend/node_modules/source-map-js/source-map.d.ts
+│   │   │   └── ./frontend/node_modules/source-map-js/source-map.js
+│   │   ├── ./frontend/node_modules/tinyglobby
+│   │   │   ├── ./frontend/node_modules/tinyglobby/LICENSE
+│   │   │   ├── ./frontend/node_modules/tinyglobby/README.md
+│   │   │   ├── ./frontend/node_modules/tinyglobby/dist
+│   │   │   │   ├── ./frontend/node_modules/tinyglobby/dist/index.d.mts
+│   │   │   │   ├── ./frontend/node_modules/tinyglobby/dist/index.d.ts
+│   │   │   │   ├── ./frontend/node_modules/tinyglobby/dist/index.js
+│   │   │   │   └── ./frontend/node_modules/tinyglobby/dist/index.mjs
+│   │   │   └── ./frontend/node_modules/tinyglobby/package.json
+│   │   ├── ./frontend/node_modules/vite
+│   │   │   ├── ./frontend/node_modules/vite/LICENSE.md
+│   │   │   ├── ./frontend/node_modules/vite/README.md
+│   │   │   ├── ./frontend/node_modules/vite/bin
+│   │   │   │   ├── ./frontend/node_modules/vite/bin/openChrome.applescript
+│   │   │   │   └── ./frontend/node_modules/vite/bin/vite.js
+│   │   │   ├── ./frontend/node_modules/vite/client.d.ts
+│   │   │   ├── ./frontend/node_modules/vite/dist
+│   │   │   │   ├── ./frontend/node_modules/vite/dist/client
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/client/client.mjs
+│   │   │   │   │   └── ./frontend/node_modules/vite/dist/client/env.mjs
+│   │   │   │   ├── ./frontend/node_modules/vite/dist/node
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/chunks
+│   │   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/chunks/dep-3RmXg9uo.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/chunks/dep-AiMcmC_f.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/chunks/dep-CvfTChi5.js
+│   │   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js
+│   │   │   │   │   │   └── ./frontend/node_modules/vite/dist/node/chunks/dep-SgSik2vo.js
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/cli.js
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/constants.js
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/index.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/index.js
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/module-runner.d.ts
+│   │   │   │   │   ├── ./frontend/node_modules/vite/dist/node/module-runner.js
+│   │   │   │   │   └── ./frontend/node_modules/vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf.d.ts
+│   │   │   │   └── ./frontend/node_modules/vite/dist/node-cjs
+│   │   │   │       └── ./frontend/node_modules/vite/dist/node-cjs/publicUtils.cjs
+│   │   │   ├── ./frontend/node_modules/vite/index.cjs
+│   │   │   ├── ./frontend/node_modules/vite/index.d.cts
+│   │   │   ├── ./frontend/node_modules/vite/misc
+│   │   │   │   ├── ./frontend/node_modules/vite/misc/false.js
+│   │   │   │   └── ./frontend/node_modules/vite/misc/true.js
+│   │   │   ├── ./frontend/node_modules/vite/package.json
+│   │   │   └── ./frontend/node_modules/vite/types
+│   │   │       ├── ./frontend/node_modules/vite/types/customEvent.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/hmrPayload.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/hot.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/import-meta.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/importGlob.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/importMeta.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/internal
+│   │   │       │   ├── ./frontend/node_modules/vite/types/internal/cssPreprocessorOptions.d.ts
+│   │   │       │   └── ./frontend/node_modules/vite/types/internal/lightningcssOptions.d.ts
+│   │   │       ├── ./frontend/node_modules/vite/types/metadata.d.ts
+│   │   │       └── ./frontend/node_modules/vite/types/package.json
+│   │   └── ./frontend/node_modules/vue
+│   │       ├── ./frontend/node_modules/vue/LICENSE
+│   │       ├── ./frontend/node_modules/vue/README.md
+│   │       ├── ./frontend/node_modules/vue/compiler-sfc
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/index.browser.js
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/index.browser.mjs
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/index.d.mts
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/index.d.ts
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/index.js
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/index.mjs
+│   │       │   ├── ./frontend/node_modules/vue/compiler-sfc/package.json
+│   │       │   └── ./frontend/node_modules/vue/compiler-sfc/register-ts.js
+│   │       ├── ./frontend/node_modules/vue/dist
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.cjs.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.cjs.prod.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.d.mts
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.d.ts
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.esm-browser.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.esm-browser.prod.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.esm-bundler.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.global.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.global.prod.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.runtime.esm-browser.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.runtime.esm-browser.prod.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.runtime.esm-bundler.js
+│   │       │   ├── ./frontend/node_modules/vue/dist/vue.runtime.global.js
+│   │       │   └── ./frontend/node_modules/vue/dist/vue.runtime.global.prod.js
+│   │       ├── ./frontend/node_modules/vue/index.js
+│   │       ├── ./frontend/node_modules/vue/index.mjs
+│   │       ├── ./frontend/node_modules/vue/jsx-runtime
+│   │       │   ├── ./frontend/node_modules/vue/jsx-runtime/index.d.ts
+│   │       │   ├── ./frontend/node_modules/vue/jsx-runtime/index.js
+│   │       │   ├── ./frontend/node_modules/vue/jsx-runtime/index.mjs
+│   │       │   └── ./frontend/node_modules/vue/jsx-runtime/package.json
+│   │       ├── ./frontend/node_modules/vue/jsx.d.ts
+│   │       ├── ./frontend/node_modules/vue/package.json
+│   │       └── ./frontend/node_modules/vue/server-renderer
+│   │           ├── ./frontend/node_modules/vue/server-renderer/index.d.mts
+│   │           ├── ./frontend/node_modules/vue/server-renderer/index.d.ts
+│   │           ├── ./frontend/node_modules/vue/server-renderer/index.js
+│   │           ├── ./frontend/node_modules/vue/server-renderer/index.mjs
+│   │           └── ./frontend/node_modules/vue/server-renderer/package.json
+│   ├── ./frontend/package-lock.json
+│   ├── ./frontend/package.json
+│   ├── ./frontend/public
+│   │   └── ./frontend/public/vite.svg
+│   ├── ./frontend/src
+│   │   ├── ./frontend/src/App.vue
+│   │   ├── ./frontend/src/assets
+│   │   │   └── ./frontend/src/assets/vue.svg
+│   │   ├── ./frontend/src/components
+│   │   │   └── ./frontend/src/components/HelloWorld.vue
+│   │   ├── ./frontend/src/main.js
+│   │   ├── ./frontend/src/router
+│   │   │   └── ./frontend/src/router/index.js
+│   │   ├── ./frontend/src/store
+│   │   ├── ./frontend/src/style.css
+│   │   └── ./frontend/src/views
+│   └── ./frontend/vite.config.js
+├── ./main.js
+└── ./project_structure.txt
+
+142 directories, 715 files
