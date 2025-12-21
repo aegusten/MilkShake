@@ -1,8 +1,7 @@
 # backend/app/models/admin.py
 import uuid
-from datetime import datetime
 from sqlalchemy import (
-    Boolean, Column, TIMESTAMP, TEXT
+    Boolean, Column, TIMESTAMP, TEXT, text
 )
 from sqlalchemy.dialects.postgresql import UUID
 from .base import Base

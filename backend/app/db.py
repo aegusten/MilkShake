@@ -3,6 +3,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models.base import Base
+from .models.enums import DRINK_TYPE
 
 DATABASE_URL = (
     "postgresql+psycopg2://"
@@ -13,6 +14,13 @@ DATABASE_URL = (
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def init_db() -> None:
     """Run once in development (for production use Alembic)."""
