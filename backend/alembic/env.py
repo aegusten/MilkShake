@@ -10,7 +10,7 @@ sys.path.append(BASE_DIR)
 
 from app.db import DATABASE_URL
 from app.models.base import Base
-from app.models import admin, category, drink, drink_image, order, enums  # noqa: F401
+from app.models import admin, item_master, drink, drink_image, order, enums  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

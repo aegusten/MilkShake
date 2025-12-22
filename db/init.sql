@@ -1,11 +1,11 @@
 /***********************************************************************
- * MilkShake – core schema
+ * MilkShake core schema
  * Postgres 15+   (uuid-ossp + enum + constraints)
  **********************************************************************/
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 /*--------------------------------------------------
-  ENUM: drink_type  (easy to extend later)
+  ENUM: drink_type (easy to extend later)
 --------------------------------------------------*/
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'drink_type') THEN
@@ -15,27 +15,26 @@ END $$;
 
 /***********************************************************************
  * 1.  Administrative users
- *    (1-2 admins only, but still nice to persist)
  **********************************************************************/
 CREATE TABLE admins (
     id            UUID            PRIMARY KEY  DEFAULT uuid_generate_v4(),
     email         TEXT            NOT NULL UNIQUE,
-    password_hash TEXT            NOT NULL,                 -- bcrypt/argon2
+    password_hash TEXT            NOT NULL,
     is_active     BOOLEAN         NOT NULL DEFAULT TRUE,
     created_at    TIMESTAMP       NOT NULL DEFAULT NOW()
 );
 
 /***********************************************************************
- * 2.  Drink categories  (sortable)
+ * 2.  Item masters (sortable)
  **********************************************************************/
-CREATE TABLE drink_categories (
+CREATE TABLE item_masters (
     id          UUID            PRIMARY KEY  DEFAULT uuid_generate_v4(),
     name        TEXT            NOT NULL UNIQUE,
     sort_order  INT             NOT NULL DEFAULT 0,
     created_at  TIMESTAMP       NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_drink_categories_sort ON drink_categories(sort_order);
+CREATE INDEX idx_item_masters_sort ON item_masters(sort_order);
 
 /***********************************************************************
  * 3.  Drinks
@@ -46,17 +45,25 @@ CREATE TABLE drinks (
     description  TEXT,
     price        NUMERIC(10,2)   NOT NULL CHECK (price >= 0),
     type         drink_type      NOT NULL DEFAULT 'other',
-    image_cover  TEXT,                           -- first image shortcut
-    category_id  UUID            NOT NULL
-                 REFERENCES drink_categories(id) ON DELETE CASCADE,
+    image_cover  TEXT,
     created_at   TIMESTAMP       NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_drinks_category          ON drinks(category_id);
-CREATE INDEX idx_drinks_type              ON drinks(type);
+CREATE INDEX idx_drinks_type ON drinks(type);
 
 /***********************************************************************
- * 4.  Drink images  (≤ 3 per drink, position 1-3)
+ * 4.  Item master assignments (many-to-many)
+ **********************************************************************/
+CREATE TABLE item_master_drinks (
+    item_master_id UUID NOT NULL
+        REFERENCES item_masters(id) ON DELETE CASCADE,
+    drink_id       UUID NOT NULL
+        REFERENCES drinks(id) ON DELETE CASCADE,
+    PRIMARY KEY (item_master_id, drink_id)
+);
+
+/***********************************************************************
+ * 5.  Drink images (max 3 per drink)
  **********************************************************************/
 CREATE TABLE drink_images (
     id         UUID          PRIMARY KEY  DEFAULT uuid_generate_v4(),
@@ -69,7 +76,7 @@ CREATE TABLE drink_images (
 );
 
 /***********************************************************************
- * 5.  Orders  (guest checkout)
+ * 6.  Orders (guest checkout)
  **********************************************************************/
 CREATE TABLE orders (
     id          UUID          PRIMARY KEY  DEFAULT uuid_generate_v4(),
@@ -79,7 +86,7 @@ CREATE TABLE orders (
 );
 
 /***********************************************************************
- * 6.  Order items
+ * 7.  Order items
  **********************************************************************/
 CREATE TABLE order_items (
     id         UUID          PRIMARY KEY  DEFAULT uuid_generate_v4(),
@@ -89,15 +96,15 @@ CREATE TABLE order_items (
                 REFERENCES drinks(id) ON DELETE RESTRICT,
     quantity   INT           NOT NULL CHECK (quantity > 0),
     price      NUMERIC(10,2) NOT NULL,
-    UNIQUE(order_id, drink_id)                -- one row per drink per order
+    UNIQUE(order_id, drink_id)
 );
 
 CREATE INDEX idx_order_items_order  ON order_items(order_id);
 CREATE INDEX idx_order_items_drink  ON order_items(drink_id);
 
 /***********************************************************************
- * 7.  Data integrity helper (optional)
- *     Enforce “max 3 images / drink” at DB-level as an extra guard.
+ * 8.  Data integrity helper (optional)
+ *     Enforce max 3 images / drink at DB-level as an extra guard.
  **********************************************************************/
 CREATE OR REPLACE FUNCTION trg_check_image_limit() RETURNS TRIGGER AS $$
 DECLARE

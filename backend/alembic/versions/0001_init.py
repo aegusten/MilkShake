@@ -16,7 +16,12 @@ depends_on = None
 
 def upgrade() -> None:
     drink_type = postgresql.ENUM(
-        "soft", "milkshake", "cocktail", "other", name="drink_type"
+        "soft",
+        "milkshake",
+        "cocktail",
+        "other",
+        name="drink_type",
+        create_type=False,
     )
     drink_type.create(op.get_bind(), checkfirst=True)
 
