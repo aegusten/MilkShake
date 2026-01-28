@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, constr
+from uuid import UUID
 from .item_master import ItemMasterOut
 
 
@@ -25,7 +26,7 @@ class DrinkUpdate(BaseModel):
 
 
 class DrinkOut(DrinkBase):
-    id: str
+    id: UUID
     item_masters: List[ItemMasterOut] = []
 
     class Config:
@@ -38,7 +39,7 @@ class DrinkImageCreate(BaseModel):
 
 
 class DrinkImageOut(DrinkImageCreate):
-    id: str
+    id: UUID
 
     class Config:
         from_attributes = True

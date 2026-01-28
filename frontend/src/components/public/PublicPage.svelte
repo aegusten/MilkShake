@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { fetchItemMasters, fetchDrinks } from "../../api/index.js";
+  import { fetchItemMasters, fetchDrinks, createOrder } from "../../api/index.js";
 
   let drinks = [];
   let itemMasters = [];
@@ -9,6 +9,10 @@
   let query = "";
   let activeItemMaster = "all";
   let orderMessage = "";
+  let orderError = "";
+  let orderLoading = false;
+  let guestName = "";
+  let guestPhone = "";
 
   const copy = {
     en: {
@@ -23,6 +27,10 @@
       catalogBody: "Pick a drink, see the photo, and add it to your order.",
       orderTitle: "Order summary",
       orderBody: "Review your selections before checkout.",
+      guestName: "Guest name",
+      guestPhone: "Phone (optional)",
+      guestNamePlaceholder: "Enter your name",
+      guestPhonePlaceholder: "+998 00 000 00 00",
       emptyTitle: "No drinks selected yet.",
       emptyBody: "Tap any milkshake to add it to your order.",
       aboutTitle: "About",
@@ -31,7 +39,10 @@
       addToOrder: "Add to order",
       subtotal: "Subtotal",
       placeOrder: "Place order",
+      sending: "Sending...",
       orderPlaced: "Order placed! We'll start preparing your drinks.",
+      orderFailed: "Order failed. Please try again.",
+      nameRequired: "Please enter your name.",
       noResultsTitle: "No drinks found.",
       noResultsBody: "Try a different search or item master.",
       adminAccess: "Admin access at /admin (direct URL)",
@@ -52,6 +63,10 @@
       catalogBody: "???????? ???????, ?????????? ???? ? ???????? ? ?????.",
       orderTitle: "?????",
       orderBody: "????????? ????? ????? ???????????.",
+      guestName: "??? ?????",
+      guestPhone: "????? (?? ??????)",
+      guestNamePlaceholder: "??? ???",
+      guestPhonePlaceholder: "+998 00 000 00 00",
       emptyTitle: "???? ?????? ?? ???????.",
       emptyBody: "??????? ?? ????????, ????? ???????? ? ?????.",
       aboutTitle: "? ???????",
@@ -60,7 +75,10 @@
       addToOrder: "???????? ? ?????",
       subtotal: "?????",
       placeOrder: "???????? ?????",
+      sending: "?????????...",
       orderPlaced: "????? ??????! ?? ???????? ???????? ???????.",
+      orderFailed: "????? ?? ???????. ?????????? ????.",
+      nameRequired: "????????? ??? ???.",
       noResultsTitle: "??????? ?? ???????.",
       noResultsBody: "?????????? ?????? ????? ??? ???????????.",
       adminAccess: "???? ??? ??????: /admin (?????? ??????)",
@@ -81,6 +99,10 @@
       catalogBody: "Ichimlikni tanlang, rasmini ko'ring va buyurtmaga qo'shing.",
       orderTitle: "Buyurtma",
       orderBody: "Buyurtmani yakunlashdan oldin tekshiring.",
+      guestName: "Mehmon ismi",
+      guestPhone: "Telefon (ixtiyoriy)",
+      guestNamePlaceholder: "Ismingizni kiriting",
+      guestPhonePlaceholder: "+998 00 000 00 00",
       emptyTitle: "Hozircha ichimlik tanlanmagan.",
       emptyBody: "Buyurtmaga qo'shish uchun milkshake ustiga bosing.",
       aboutTitle: "Loyiha haqida",
@@ -89,7 +111,10 @@
       addToOrder: "Buyurtmaga qo'shish",
       subtotal: "Jami",
       placeOrder: "Buyurtma berish",
+      sending: "Yuborilmoqda...",
       orderPlaced: "Buyurtma qabul qilindi! Ichimliklar tayyorlanmoqda.",
+      orderFailed: "Buyurtma yuborilmadi. Qayta urinib ko'ring.",
+      nameRequired: "Ismingizni kiriting.",
       noResultsTitle: "Ichimlik topilmadi.",
       noResultsBody: "Qidiruv yoki yo'nalishni o'zgartiring.",
       adminAccess: "Admin kirish: /admin (to'g'ridan-to'g'ri URL)",
@@ -161,12 +186,40 @@
   };
 
   const placeOrder = () => {
+    orderError = "";
     if (cart.length === 0) {
       orderMessage = copy[lang].emptyTitle;
       return;
     }
-    orderMessage = copy[lang].orderPlaced;
-    cart = [];
+    if (!guestName.trim()) {
+      orderMessage = copy[lang].nameRequired;
+      return;
+    }
+    orderLoading = true;
+    createOrder({
+      guest_name: guestName.trim(),
+      phone: guestPhone.trim() || null,
+      items: cart.map((item) => ({
+        drink_id: item.id,
+        quantity: item.qty,
+      })),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          orderError = response.data?.detail || copy[lang].orderFailed;
+          return;
+        }
+        orderMessage = copy[lang].orderPlaced;
+        cart = [];
+        guestName = "";
+        guestPhone = "";
+      })
+      .catch(() => {
+        orderError = copy[lang].orderFailed;
+      })
+      .finally(() => {
+        orderLoading = false;
+      });
   };
 
   const selectItemMaster = (id) => {
@@ -314,6 +367,25 @@
         <p>{copy[lang].orderBody}</p>
       </div>
       <div class="cart">
+        <div class="order-fields">
+          <label>
+            {copy[lang].guestName}
+            <input
+              type="text"
+              placeholder={copy[lang].guestNamePlaceholder}
+              bind:value={guestName}
+              required
+            />
+          </label>
+          <label>
+            {copy[lang].guestPhone}
+            <input
+              type="tel"
+              placeholder={copy[lang].guestPhonePlaceholder}
+              bind:value={guestPhone}
+            />
+          </label>
+        </div>
         {#if cart.length === 0}
           <div class="empty">
             <span>{copy[lang].emptyTitle}</span>
@@ -338,9 +410,12 @@
             <span>{copy[lang].subtotal}</span>
             <strong>{formatPrice(subtotal)}</strong>
           </div>
-          <button class="primary checkout" on:click={placeOrder}>
-            {copy[lang].placeOrder}
+          <button class="primary checkout" on:click={placeOrder} disabled={orderLoading}>
+            {orderLoading ? copy[lang].sending : copy[lang].placeOrder}
           </button>
+        {/if}
+        {#if orderError}
+          <div class="order-message">{orderError}</div>
         {/if}
         {#if orderMessage}
           <div class="order-message">{orderMessage}</div>

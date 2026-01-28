@@ -174,6 +174,12 @@ button,
   color: var(--ink);
 }
 
+.link-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .cta:hover,
 .primary:hover,
 .ghost:hover {
@@ -397,6 +403,34 @@ h1 {
   gap: 1rem;
 }
 
+.order-fields {
+  display: grid;
+  gap: 1rem;
+}
+
+.order-fields label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.order-fields input {
+  border-radius: 14px;
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  padding: 0.8rem 1rem;
+  font-family: var(--font-body);
+  background: #ffffff;
+}
+
+.primary:disabled,
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .cart-row {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -476,6 +510,89 @@ h1 {
   }
 }
 
+.qr-page {
+  gap: 2rem;
+}
+
+.qr-shell {
+  display: grid;
+  gap: 2rem;
+}
+
+.qr-hero h1 {
+  margin: 0;
+}
+
+.qr-meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 36rem;
+  margin: 0;
+}
+
+.qr-card {
+  background: var(--card);
+  border-radius: 26px;
+  padding: 1.8rem;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 1.2rem;
+}
+
+.qr-preview {
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  padding: 1.2rem;
+  background: #ffffff;
+}
+
+.qr-preview img {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  display: block;
+}
+
+.qr-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.qr-input {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.qr-input label {
+  font-weight: 600;
+}
+
+.qr-input input {
+  border-radius: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  padding: 0.85rem 1rem;
+  font-family: var(--font-body);
+  background: #ffffff;
+}
+
+.qr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.qr-status {
+  font-weight: 600;
+}
+
+.qr-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
 @media (min-width: 768px) {
   .page {
     padding: 2.5rem 2rem 3rem;
@@ -493,6 +610,11 @@ h1 {
 
   .catalog-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .qr-shell {
+    grid-template-columns: 0.9fr 1.1fr;
+    align-items: center;
   }
 
 }

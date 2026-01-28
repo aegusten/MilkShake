@@ -6,6 +6,7 @@ import os
 from app.api.admin import router as admin_router
 from app.api.admin_catalog import router as admin_catalog_router
 from app.api.public_catalog import router as public_catalog_router
+from app.api.orders import router as orders_router
 
 app = FastAPI(title="MilkShake Backend")
 
@@ -39,3 +40,4 @@ def root():
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
 app.include_router(admin_catalog_router, prefix="/api/admin", tags=["admin"])
 app.include_router(public_catalog_router, prefix="/api", tags=["public"])
+app.include_router(orders_router, prefix="/api", tags=["orders"])

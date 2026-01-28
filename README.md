@@ -25,6 +25,7 @@ docker-compose exec backend python -m app.scripts.create_superuser --email admin
 - Backend API: `http://localhost:8000`
 - Swagger: `http://localhost:8000/docs`
 - Admin UI: `http://localhost:5173/admin`
+- QR page: `http://localhost:5173/qr`
 
 ## Admin credentials (example)
 
@@ -45,3 +46,19 @@ Change the email/password in the superuser command to your own values.
 
 - Database schema is managed by Alembic (do not use `db/init.sql`).
 - Edit `.env` for local secrets and ports.
+
+## Local hosting + QR (phone access)
+
+To make the site reachable from a phone on the same network:
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host
+```
+
+Then open `http://<LAN-IP>:5173/qr` on your computer to generate a QR code that
+points to the menu URL. Scan it with the phone.
+
+If the backend runs on the same machine, set `VITE_API_BASE` to
+`http://<LAN-IP>:8000` in `frontend/.env` so the phone can reach the API.

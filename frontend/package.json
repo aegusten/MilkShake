@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "qrcode": "^1.5.4",
     "svelte": "^5.0.0"
   },
   "devDependencies": {

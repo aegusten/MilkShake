@@ -1,5 +1,5 @@
 <script>
-  import { loginAdmin } from "../../api/index.js";
+  import { loginAdmin, fetchAdminOrders } from "../../api/index.js";
   import AdminOrders from "./AdminOrders.svelte";
   import AdminDrinks from "./AdminDrinks.svelte";
 
@@ -13,6 +13,23 @@
   let adminTab = "orders";
 
   let adminOrders = [];
+  let ordersError = "";
+  let ordersLoading = false;
+
+  const loadOrders = async () => {
+    ordersError = "";
+    if (!adminId) {
+      return;
+    }
+    ordersLoading = true;
+    const response = await fetchAdminOrders(adminId);
+    ordersLoading = false;
+    if (!response.ok) {
+      ordersError = response.data?.detail || "Unable to load orders.";
+      return;
+    }
+    adminOrders = response.data || [];
+  };
 
   const handleLogin = async () => {
     adminError = "";
@@ -31,6 +48,7 @@
     adminId = response.data.admin_id;
     adminLoggedIn = true;
     adminPassword = "";
+    await loadOrders();
   };
 </script>
 
@@ -112,7 +130,12 @@
       </div>
 
       {#if adminTab === "orders"}
-        <AdminOrders {adminOrders} />
+        <AdminOrders
+          {adminOrders}
+          {ordersError}
+          {ordersLoading}
+          onRefresh={loadOrders}
+        />
       {:else}
         <AdminDrinks {adminId} />
       {/if}

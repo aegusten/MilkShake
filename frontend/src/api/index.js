@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 const apiFetch = async (path, { method = "GET", body, adminId } = {}) => {
   const headers = {};
@@ -31,6 +31,12 @@ export const loginAdmin = (email, password) =>
 export const fetchItemMasters = () => apiFetch("/api/item-masters");
 
 export const fetchDrinks = () => apiFetch("/api/drinks");
+
+export const createOrder = (payload) =>
+  apiFetch("/api/orders", {
+    method: "POST",
+    body: payload,
+  });
 
 export const createItemMaster = (adminId, payload) =>
   apiFetch("/api/admin/item-masters", {
@@ -90,3 +96,6 @@ export const uploadImage = async (adminId, file) => {
 };
 
 export { API_BASE };
+
+export const fetchAdminOrders = (adminId) =>
+  apiFetch("/api/admin/orders", { adminId });
