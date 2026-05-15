@@ -1,12 +1,14 @@
 from typing import List, Optional
-from pydantic import BaseModel, constr
 from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from .item_master import ItemMasterOut
 
 
 class DrinkBase(BaseModel):
     name: str
-    description: Optional[constr(max_length=160)] = None
+    description: Optional[str] = Field(default=None, max_length=160)
     price: float
     type: str = "other"
     image_cover: Optional[str] = None
@@ -18,7 +20,7 @@ class DrinkCreate(DrinkBase):
 
 class DrinkUpdate(BaseModel):
     name: Optional[str] = None
-    description: Optional[constr(max_length=160)] = None
+    description: Optional[str] = Field(default=None, max_length=160)
     price: Optional[float] = None
     type: Optional[str] = None
     image_cover: Optional[str] = None
@@ -26,11 +28,10 @@ class DrinkUpdate(BaseModel):
 
 
 class DrinkOut(DrinkBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     item_masters: List[ItemMasterOut] = []
-
-    class Config:
-        from_attributes = True
 
 
 class DrinkImageCreate(BaseModel):
@@ -39,7 +40,6 @@ class DrinkImageCreate(BaseModel):
 
 
 class DrinkImageOut(DrinkImageCreate):
-    id: UUID
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    id: UUID

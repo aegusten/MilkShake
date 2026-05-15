@@ -1,7 +1,8 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.admin import router as admin_router
@@ -9,6 +10,13 @@ from app.api.admin_catalog import router as admin_catalog_router
 from app.api.orders import router as orders_router
 from app.api.public_catalog import router as public_catalog_router
 from app.config import get_settings
+from app.services.errors import (
+    ConflictError,
+    ForbiddenError,
+    InvalidInputError,
+    NotFoundError,
+    UnauthorizedError,
+)
 
 settings = get_settings()
 
@@ -25,6 +33,35 @@ app.add_middleware(
 uploads_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
 os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+
+
+@app.exception_handler(NotFoundError)
+async def _not_found(_: Request, exc: NotFoundError) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(ConflictError)
+async def _conflict(_: Request, exc: ConflictError) -> JSONResponse:
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+@app.exception_handler(InvalidInputError)
+async def _invalid_input(_: Request, exc: InvalidInputError) -> JSONResponse:
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+@app.exception_handler(UnauthorizedError)
+async def _unauthorized(_: Request, exc: UnauthorizedError) -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={"detail": str(exc)},
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+@app.exception_handler(ForbiddenError)
+async def _forbidden(_: Request, exc: ForbiddenError) -> JSONResponse:
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
 
 
 @app.get("/")
