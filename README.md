@@ -122,7 +122,22 @@ docker compose exec backend alembic upgrade head
 
 This creates the schema (admins, drinks, item_masters, orders, etc.).
 
-### 7. Create your first admin
+### 7. Seed the database
+
+Two options — pick one.
+
+**Option A — full dev seed (recommended for first-time setup):** creates a
+default admin plus three item masters and six sample drinks so the menu
+isn't empty when you open the UI. Idempotent.
+
+```powershell
+docker compose exec backend python -m app.scripts.seed_data
+```
+
+Default admin: `admin@example.com` / `ChangeMe123`. Change the password
+before launch.
+
+**Option B — admin only (no sample catalog):**
 
 ```powershell
 docker compose exec backend python -m app.scripts.create_superuser `
@@ -259,6 +274,15 @@ docker compose exec backend python -m app.scripts.create_superuser `
   --email new@example.com --password NewPass123 --force
 ```
 
+### Re-seed the dev catalog
+
+The seed script is idempotent — running it twice won't duplicate. Useful
+after `docker compose down -v` or when onboarding a teammate.
+
+```powershell
+docker compose exec backend python -m app.scripts.seed_data
+```
+
 ### Add a database migration
 
 ```powershell
@@ -282,8 +306,7 @@ docker compose exec backend alembic current
 docker compose down -v
 docker compose up -d
 docker compose exec backend alembic upgrade head
-docker compose exec backend python -m app.scripts.create_superuser `
-  --email you@example.com --password ChangeMe123
+docker compose exec backend python -m app.scripts.seed_data
 ```
 
 ### Hit the API directly
