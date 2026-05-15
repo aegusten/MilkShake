@@ -1,12 +1,17 @@
 <script>
-  import { loginAdmin, fetchAdminOrders } from "../../api/index.js";
+  import { onMount } from "svelte";
+  import {
+    fetchAdminOrders,
+    isAdminLoggedIn,
+    loginAdmin,
+    logoutAdmin,
+  } from "../../api/index.js";
   import AdminOrders from "./AdminOrders.svelte";
   import AdminDrinks from "./AdminDrinks.svelte";
 
   export let pathLabel = "";
 
   let adminLoggedIn = false;
-  let adminId = "";
   let adminEmail = "";
   let adminPassword = "";
   let adminError = "";
@@ -16,14 +21,24 @@
   let ordersError = "";
   let ordersLoading = false;
 
+  const handleUnauthorized = (message = "Session expired. Please log in again.") => {
+    adminLoggedIn = false;
+    adminOrders = [];
+    adminError = message;
+  };
+
   const loadOrders = async () => {
     ordersError = "";
-    if (!adminId) {
+    if (!adminLoggedIn) {
       return;
     }
     ordersLoading = true;
-    const response = await fetchAdminOrders(adminId);
+    const response = await fetchAdminOrders();
     ordersLoading = false;
+    if (response.status === 401) {
+      handleUnauthorized();
+      return;
+    }
     if (!response.ok) {
       ordersError = response.data?.detail || "Unable to load orders.";
       return;
@@ -37,25 +52,37 @@
       adminEmail.trim().toLowerCase(),
       adminPassword
     );
-    if (!response.ok) {
+    if (!response.ok || !response.data?.access_token) {
       adminError = response.data?.detail || "Login failed.";
       return;
     }
-    if (!response.data?.admin_id) {
-      adminError = "Login failed.";
-      return;
-    }
-    adminId = response.data.admin_id;
     adminLoggedIn = true;
     adminPassword = "";
     await loadOrders();
   };
+
+  const handleLogout = () => {
+    logoutAdmin();
+    adminLoggedIn = false;
+    adminOrders = [];
+    adminError = "";
+  };
+
+  onMount(() => {
+    if (isAdminLoggedIn()) {
+      adminLoggedIn = true;
+      loadOrders();
+    }
+  });
 </script>
 
 <div class="admin-shell admin-shell-wide">
   <header class="admin-header">
     <span class="brand">MilkShake Admin</span>
     <span class="path">Path: {pathLabel}</span>
+    {#if adminLoggedIn}
+      <button class="ghost" type="button" on:click={handleLogout}>Log out</button>
+    {/if}
   </header>
   {#if !adminLoggedIn}
     <section class="admin-auth">
@@ -137,7 +164,10 @@
           onRefresh={loadOrders}
         />
       {:else}
-        <AdminDrinks {adminId} />
+        <AdminDrinks
+          {adminLoggedIn}
+          on:unauthorized={() => handleUnauthorized()}
+        />
       {/if}
     </section>
   {/if}

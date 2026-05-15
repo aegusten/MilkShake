@@ -1,4 +1,5 @@
 <script>
+  import { createEventDispatcher } from "svelte";
   import {
     fetchItemMasters,
     fetchDrinks,
@@ -12,7 +13,9 @@
     API_BASE,
   } from "../../api/index.js";
 
-  export let adminId = "";
+  export let adminLoggedIn = false;
+
+  const dispatch = createEventDispatcher();
 
   let drinks = [];
   let itemMasters = [];
@@ -39,6 +42,14 @@
 
   let itemMasterForm = {
     name: "",
+  };
+
+  const handleAuth = (response) => {
+    if (response.status === 401) {
+      dispatch("unauthorized");
+      return true;
+    }
+    return false;
   };
 
   const loadItemMasters = async () => {
@@ -167,7 +178,7 @@
   };
 
   const uploadCroppedImage = async () => {
-    if (!adminId) {
+    if (!adminLoggedIn) {
       adminError = "Admin session missing.";
       return;
     }
@@ -177,7 +188,8 @@
       return;
     }
     const file = new File([blob], "drink.jpg", { type: "image/jpeg" });
-    const response = await uploadImage(adminId, file);
+    const response = await uploadImage(file);
+    if (handleAuth(response)) return;
     if (!response.ok) {
       adminError = response.data?.detail || "Image upload failed.";
       return;
@@ -187,7 +199,7 @@
 
   const saveAdminDrink = async () => {
     adminError = "";
-    if (!adminId) {
+    if (!adminLoggedIn) {
       adminError = "Admin session missing.";
       return;
     }
@@ -208,8 +220,9 @@
       item_master_ids: adminForm.item_master_ids,
     };
     const response = adminEditingId
-      ? await updateDrink(adminId, adminEditingId, payload)
-      : await createDrink(adminId, payload);
+      ? await updateDrink(adminEditingId, payload)
+      : await createDrink(payload);
+    if (handleAuth(response)) return;
     if (!response.ok) {
       adminError = response.data?.detail || "Save failed.";
       return;
@@ -232,11 +245,12 @@
   };
 
   const deleteAdminDrink = async (id) => {
-    if (!adminId) {
+    if (!adminLoggedIn) {
       adminError = "Admin session missing.";
       return;
     }
-    const response = await deleteDrink(adminId, id);
+    const response = await deleteDrink(id);
+    if (handleAuth(response)) return;
     if (!response.ok) {
       adminError = response.data?.detail || "Delete failed.";
       return;
@@ -249,7 +263,7 @@
 
   const saveItemMaster = async () => {
     adminError = "";
-    if (!adminId) {
+    if (!adminLoggedIn) {
       adminError = "Admin session missing.";
       return;
     }
@@ -261,8 +275,9 @@
       name: itemMasterForm.name.trim(),
     };
     const response = itemMasterEditingId
-      ? await updateItemMaster(adminId, itemMasterEditingId, payload)
-      : await createItemMaster(adminId, payload);
+      ? await updateItemMaster(itemMasterEditingId, payload)
+      : await createItemMaster(payload);
+    if (handleAuth(response)) return;
     if (!response.ok) {
       adminError = response.data?.detail || "Item master save failed.";
       return;
@@ -279,11 +294,12 @@
   };
 
   const deleteItemMaster = async (id) => {
-    if (!adminId) {
+    if (!adminLoggedIn) {
       adminError = "Admin session missing.";
       return;
     }
-    const response = await removeItemMaster(adminId, id);
+    const response = await removeItemMaster(id);
+    if (handleAuth(response)) return;
     if (!response.ok) {
       adminError = response.data?.detail || "Item master delete failed.";
       return;
@@ -294,7 +310,7 @@
     }
   };
 
-  $: if (adminId && !hasLoaded) {
+  $: if (adminLoggedIn && !hasLoaded) {
     hasLoaded = true;
     loadCatalog();
   }

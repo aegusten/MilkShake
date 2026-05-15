@@ -1,27 +1,22 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 import os
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.admin import router as admin_router
 from app.api.admin_catalog import router as admin_catalog_router
-from app.api.public_catalog import router as public_catalog_router
 from app.api.orders import router as orders_router
+from app.api.public_catalog import router as public_catalog_router
+from app.config import get_settings
+
+settings = get_settings()
 
 app = FastAPI(title="MilkShake Backend")
 
-# CORS settings
-origins = [
-    origin.strip()
-    for origin in os.getenv("BACKEND_CORS_ORIGINS", "").split(",")
-    if origin.strip()
-]
-if not origins:
-    origins = ["http://localhost:5173", "http://localhost:5174"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,8 +28,8 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 
 @app.get("/")
-def root():
-    return {"message": "Welcome to MilkShake API dY?1"}
+def root() -> dict[str, str]:
+    return {"message": "Welcome to MilkShake API"}
 
 
 app.include_router(admin_router, prefix="/api/admin", tags=["admin"])

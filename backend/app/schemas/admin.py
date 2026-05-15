@@ -7,5 +7,13 @@ class AdminLoginRequest(BaseModel):
 
 
 class AdminLoginResponse(BaseModel):
-    ok: bool
-    admin_id: str
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+class TokenPayload(BaseModel):
+    sub: str
+    iat: int
+    exp: int
+    type: str

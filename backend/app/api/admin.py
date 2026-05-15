@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.models.admin import Admin
 from app.schemas.admin import AdminLoginRequest, AdminLoginResponse
-from app.utils.security import verify_password
+from app.utils.security import create_access_token, verify_password
 
 router = APIRouter()
 
@@ -29,4 +29,10 @@ async def admin_login(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin account disabled.",
         )
-    return AdminLoginResponse(ok=True, admin_id=str(admin.id))
+
+    token, expires_in = create_access_token(admin.id)
+    return AdminLoginResponse(
+        access_token=token,
+        token_type="bearer",
+        expires_in=expires_in,
+    )
