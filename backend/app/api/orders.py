@@ -1,12 +1,15 @@
-from typing import List, Dict
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, selectinload
+from typing import Dict, List
 
-from app.db import get_db
-from app.models.order import Order, OrderItem
-from app.models.drink import Drink
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
 from app.api.admin_catalog import require_admin
-from app.schemas.order import OrderCreate, OrderOut, OrderItemOut
+from app.db import get_db
+from app.models.drink import Drink
+from app.models.order import Order, OrderItem
+from app.schemas.order import OrderCreate, OrderItemOut, OrderOut
 
 router = APIRouter()
 
@@ -38,7 +41,10 @@ def build_order_out(order: Order) -> OrderOut:
 
 
 @router.post("/orders", response_model=OrderOut, status_code=status.HTTP_201_CREATED)
-def create_order(payload: OrderCreate, db: Session = Depends(get_db)):
+async def create_order(
+    payload: OrderCreate,
+    db: AsyncSession = Depends(get_db),
+) -> OrderOut:
     if not payload.items:
         raise HTTPException(status_code=400, detail="Order items required.")
 
@@ -46,17 +52,16 @@ def create_order(payload: OrderCreate, db: Session = Depends(get_db)):
     for item in payload.items:
         quantities[item.drink_id] = quantities.get(item.drink_id, 0) + item.quantity
 
-    drinks = (
-        db.query(Drink)
-        .filter(Drink.id.in_(list(quantities.keys())))
-        .all()
+    result = await db.execute(
+        select(Drink).where(Drink.id.in_(list(quantities.keys())))
     )
+    drinks = list(result.scalars().all())
     if len(drinks) != len(quantities):
         raise HTTPException(status_code=404, detail="Drink not found.")
 
     order = Order(guest_name=payload.guest_name, phone=payload.phone)
     db.add(order)
-    db.flush()
+    await db.flush()
 
     drink_map = {str(drink.id): drink for drink in drinks}
     for drink_id, quantity in quantities.items():
@@ -71,25 +76,28 @@ def create_order(payload: OrderCreate, db: Session = Depends(get_db)):
         )
         db.add(order_item)
 
-    db.commit()
-    order = (
-        db.query(Order)
+    await db.commit()
+    result = await db.execute(
+        select(Order)
         .options(selectinload(Order.items).selectinload(OrderItem.drink))
-        .filter(Order.id == order.id)
-        .one()
+        .where(Order.id == order.id)
     )
-    return build_order_out(order)
+    refreshed = result.scalar_one()
+    return build_order_out(refreshed)
 
 
-@router.get("/admin/orders", response_model=List[OrderOut])
-def list_orders(
-    db: Session = Depends(get_db),
-    admin=Depends(require_admin),
-):
-    orders = (
-        db.query(Order)
+@router.get(
+    "/admin/orders",
+    response_model=List[OrderOut],
+    dependencies=[Depends(require_admin)],
+)
+async def list_orders(
+    db: AsyncSession = Depends(get_db),
+) -> list[OrderOut]:
+    result = await db.execute(
+        select(Order)
         .options(selectinload(Order.items).selectinload(OrderItem.drink))
         .order_by(Order.created_at.desc())
-        .all()
     )
+    orders = list(result.scalars().all())
     return [build_order_out(order) for order in orders]
