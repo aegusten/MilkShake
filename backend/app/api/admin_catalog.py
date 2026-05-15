@@ -2,7 +2,9 @@ import os
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Security, UploadFile, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,29 +23,44 @@ from app.schemas.drink import (
     DrinkUpdate,
 )
 from app.schemas.item_master import ItemMasterCreate, ItemMasterOut, ItemMasterUpdate
+from app.utils.security import decode_access_token
 
 router = APIRouter()
 
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+bearer_scheme = HTTPBearer(auto_error=False)
+
+_BEARER_HEADERS = {"WWW-Authenticate": "Bearer"}
+
 
 async def require_admin(
-    x_admin_id: str = Header(None, alias="X-Admin-Id"),
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> Admin:
-    if not x_admin_id:
+    if credentials is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin credentials required.",
+            headers=_BEARER_HEADERS,
         )
     try:
-        admin_uuid = uuid.UUID(x_admin_id)
-    except ValueError:
+        payload = decode_access_token(credentials.credentials)
+    except InvalidTokenError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid admin credentials.",
-        )
+            detail="Invalid or expired token.",
+            headers=_BEARER_HEADERS,
+        ) from exc
+    try:
+        admin_uuid = uuid.UUID(payload.sub)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token subject.",
+            headers=_BEARER_HEADERS,
+        ) from exc
     result = await db.execute(select(Admin).where(Admin.id == admin_uuid))
     admin = result.scalar_one_or_none()
     if not admin or not admin.is_active:

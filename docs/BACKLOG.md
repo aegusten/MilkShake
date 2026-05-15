@@ -32,27 +32,53 @@ Acceptance:
 - A k6 or `wrk` smoke test of 100 RPS on `GET /api/drinks` succeeds with no
   blocked event loop warnings.
 
-### Phase 2 — JWT auth
+### Phase 2 — JWT auth (access tokens)
 **Branch:** `refactor/phase-2-auth`
 **Why:** Current auth is "send the admin UUID as a header". Anyone with that
 UUID is admin. Critical security fix.
 
+Refresh tokens are intentionally **deferred to Phase 7** where SvelteKit's
+server routes can set HttpOnly cookies. The current Vite SPA cannot store a
+refresh token safely; an 8-hour access token covers a typical staff shift.
+
 Scope:
 
-- `python-jose[cryptography]` or `pyjwt` added.
-- `/api/admin/login` issues a 15-minute access token + 7-day refresh token.
-- New `require_admin` dependency verifies `Authorization: Bearer <jwt>`.
-- Frontend stores token in memory + refresh token in HttpOnly cookie (set
-  by the SvelteKit server route, not the SPA).
+- `PyJWT[crypto]` added.
+- `pydantic-settings` introduced via `app/config.py`. `JWT_SECRET`,
+  `JWT_ALGORITHM`, `JWT_ACCESS_TTL_MINUTES`, Postgres + CORS env vars all
+  flow through `Settings`. `JWT_SECRET` rejected at startup if shorter than
+  32 chars.
+- `/api/admin/login` returns `{ access_token, token_type: "bearer",
+  expires_in }`. Token has `sub`, `iat`, `exp`, `type: "access"` claims.
+- New `require_admin` dependency reads `Authorization: Bearer <jwt>` via
+  FastAPI's `HTTPBearer`, validates the JWT, returns the loaded `Admin`.
 - `X-Admin-Id` header support removed.
-- `JWT_SECRET` validated at app startup (refuses to boot if missing).
+- Frontend SPA updated: stores token in `localStorage` (interim — moves to
+  HttpOnly cookie in Phase 7), sends `Authorization: Bearer` on every admin
+  call, clears token + redirects to login on 401.
 
 Acceptance:
 
-- Login returns both tokens.
-- Expired access token returns 401 with `WWW-Authenticate: Bearer`.
-- Refresh flow rotates the refresh token (one-time use).
-- A test confirms requests without the header are rejected.
+- Login returns an access token; bad creds → 401.
+- Missing / malformed / expired token → 401 with `WWW-Authenticate: Bearer`.
+- Admin can log in, manage drinks, manage orders. Reloading the admin tab
+  keeps the session (token survives in `localStorage`).
+- No `X-Admin-Id` reference remains in the codebase.
+
+### Phase 2.5 — Refresh tokens (deferred until SvelteKit)
+**Branch:** `refactor/phase-2.5-refresh-tokens` (after Phase 7)
+**Why:** Short-lived access tokens + long-lived refresh in HttpOnly cookie
+is the safe pattern. Cannot be done cleanly on the current SPA — needs a
+server-side endpoint that can `Set-Cookie` with HttpOnly + Secure flags.
+
+Scope (when SvelteKit lands):
+
+- Access TTL drops to 15–30 min.
+- Refresh tokens: 7-day TTL, one-time use, rotated on each refresh.
+- Stored in DB (`admin_refresh_tokens` table) for revocation.
+- SvelteKit `+server.ts` endpoint issues the cookie; browser never sees the
+  refresh token directly.
+- Auto-refresh on 401 via SvelteKit `handleFetch` hook.
 
 ### Phase 3 — Service layer + settings
 **Branch:** `refactor/phase-3-services`

@@ -18,8 +18,8 @@ second TV screen when the drink is ready for pickup.
 
 | Layer | Today | Target (post-refactor) |
 |---|---|---|
-| Backend | FastAPI (sync) + SQLAlchemy + psycopg2 | FastAPI (async) + SQLAlchemy async + asyncpg |
-| Auth | `X-Admin-Id` header (insecure) | JWT bearer tokens |
+| Backend | FastAPI (async) + SQLAlchemy async + asyncpg | Same |
+| Auth | JWT bearer (access token, 8h) | + refresh tokens via HttpOnly cookie (Phase 7) |
 | Realtime | None (manual refresh) | Server-Sent Events |
 | Frontend | Svelte 5 SPA + Vite | SvelteKit (SSR) + Tailwind v4 |
 | Database | PostgreSQL 15 | PostgreSQL 15 |

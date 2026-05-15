@@ -1,4 +1,3 @@
-import os
 from typing import AsyncIterator
 
 from sqlalchemy.ext.asyncio import (
@@ -7,12 +6,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-DATABASE_URL = (
-    "postgresql+asyncpg://"
-    f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
-    f"@{os.getenv('POSTGRES_SERVER')}:{os.getenv('POSTGRES_PORT')}"
-    f"/{os.getenv('POSTGRES_DB')}"
-)
+from app.config import get_settings
+
+settings = get_settings()
+DATABASE_URL = settings.database_url
 
 engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
 
