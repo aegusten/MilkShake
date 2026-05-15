@@ -1,6 +1,7 @@
 from typing import Optional
-from pydantic import BaseModel
 from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
 
 
 class ItemMasterBase(BaseModel):
@@ -16,7 +17,6 @@ class ItemMasterUpdate(BaseModel):
 
 
 class ItemMasterOut(ItemMasterBase):
-    id: UUID
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    id: UUID

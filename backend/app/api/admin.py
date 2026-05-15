@@ -1,11 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_db
-from app.models.admin import Admin
 from app.schemas.admin import AdminLoginRequest, AdminLoginResponse
-from app.utils.security import create_access_token, verify_password
+from app.services import auth_service
 
 router = APIRouter()
 
@@ -15,22 +13,9 @@ async def admin_login(
     payload: AdminLoginRequest,
     db: AsyncSession = Depends(get_db),
 ) -> AdminLoginResponse:
-    result = await db.execute(
-        select(Admin).where(Admin.email == payload.email.lower())
+    token, expires_in = await auth_service.authenticate_admin(
+        db, payload.email, payload.password
     )
-    admin = result.scalar_one_or_none()
-    if not admin or not verify_password(payload.password, admin.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials.",
-        )
-    if not admin.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin account disabled.",
-        )
-
-    token, expires_in = create_access_token(admin.id)
     return AdminLoginResponse(
         access_token=token,
         token_type="bearer",
