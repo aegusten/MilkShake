@@ -1,9 +1,35 @@
 import argparse
+import asyncio
 import getpass
 
-from app.db import SessionLocal
+from sqlalchemy import select
+
+from app.db import AsyncSessionLocal
 from app.models.admin import Admin
 from app.utils.security import hash_password
+
+
+async def create_or_update_admin(email: str, password: str, force: bool) -> None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(Admin).where(Admin.email == email))
+        existing = result.scalar_one_or_none()
+
+        if existing and not force:
+            raise SystemExit("Admin already exists. Use --force to overwrite.")
+
+        if existing and force:
+            existing.password_hash = hash_password(password)
+            existing.is_active = True
+        else:
+            session.add(
+                Admin(
+                    email=email,
+                    password_hash=hash_password(password),
+                    is_active=True,
+                )
+            )
+
+        await session.commit()
 
 
 def main() -> None:
@@ -17,29 +43,9 @@ def main() -> None:
     if not password:
         raise SystemExit("Password is required.")
 
-    session = SessionLocal()
-    try:
-        email = args.email.strip().lower()
-        existing = session.query(Admin).filter(Admin.email == email).one_or_none()
-        if existing and not args.force:
-            raise SystemExit("Admin already exists. Use --force to overwrite.")
-
-        if existing and args.force:
-            existing.password_hash = hash_password(password)
-            existing.is_active = True
-            session.add(existing)
-        else:
-            admin = Admin(
-                email=email,
-                password_hash=hash_password(password),
-                is_active=True,
-            )
-            session.add(admin)
-
-        session.commit()
-        print("Admin user saved.")
-    finally:
-        session.close()
+    email = args.email.strip().lower()
+    asyncio.run(create_or_update_admin(email, password, args.force))
+    print("Admin user saved.")
 
 
 if __name__ == "__main__":

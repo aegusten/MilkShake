@@ -1,31 +1,28 @@
-# backend/app/db.py
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from .models.base import Base
-from .models.enums import DRINK_TYPE
+from typing import AsyncIterator
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 DATABASE_URL = (
-    "postgresql+psycopg2://"
+    "postgresql+asyncpg://"
     f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
     f"@{os.getenv('POSTGRES_SERVER')}:{os.getenv('POSTGRES_PORT')}"
     f"/{os.getenv('POSTGRES_DB')}"
 )
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    autoflush=False,
+)
 
-def init_db() -> None:
-    """Run once in development (for production use Alembic)."""
-    import sqlalchemy as sa
-    with engine.begin() as conn:
-        # Ensure ENUM type exists
-        DRINK_TYPE.create(conn, checkfirst=True)
-    Base.metadata.create_all(bind=engine)
+
+async def get_db() -> AsyncIterator[AsyncSession]:
+    async with AsyncSessionLocal() as session:
+        yield session
