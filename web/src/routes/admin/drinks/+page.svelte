@@ -161,7 +161,7 @@
 
 <div class="grid gap-6 lg:grid-cols-[minmax(0,26rem)_1fr]">
   <div class="flex flex-col gap-6">
-    <form class="card flex flex-col gap-4 p-5" onsubmit={saveDrink} aria-labelledby="drink-form-title">
+    <form class="card flex flex-col gap-4 p-5" onsubmit={saveDrink} novalidate aria-labelledby="drink-form-title">
       <h2 id="drink-form-title" class="text-xl font-bold">{form.id ? 'Edit drink' : 'Add a drink'}</h2>
       <label class="label">
         Name
@@ -260,7 +260,7 @@
       </div>
     </form>
 
-    <form class="card flex flex-col gap-4 p-5" onsubmit={saveMaster} aria-labelledby="master-form-title">
+    <form class="card flex flex-col gap-4 p-5" onsubmit={saveMaster} novalidate aria-labelledby="master-form-title">
       <h2 id="master-form-title" class="text-xl font-bold">{masterForm.id ? 'Rename category' : 'Add a category'}</h2>
       <label class="label">
         Name
