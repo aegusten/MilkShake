@@ -4,17 +4,26 @@
 
   let { dark = false } = $props();
   const i18n = useLocale();
+
+  // Links, not buttons, so switching works before the page's JavaScript has
+  // loaded: the server sets the cookie and redirects back. Once hydrated,
+  // the click is handled here instead and the switch is instant.
+  function choose(event, code) {
+    event.preventDefault();
+    i18n.set(code);
+  }
 </script>
 
-<div role="group" aria-label={i18n.t('nav.language')} class="flex items-center gap-1">
+<nav aria-label={i18n.t('nav.language')} class="flex items-center gap-1">
   {#each LOCALES as code}
-    <button
-      type="button"
+    <a
+      href={`?lang=${code}`}
+      hreflang={code}
       lang={code}
-      aria-pressed={i18n.current === code}
-      onclick={() => i18n.set(code)}
+      aria-current={i18n.current === code ? 'true' : undefined}
+      onclick={(event) => choose(event, code)}
       class={[
-        'min-h-11 min-w-11 rounded-full px-3 text-xs font-bold transition',
+        'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 text-xs font-bold transition',
         i18n.current === code
           ? dark
             ? 'bg-white text-ink'
@@ -25,6 +34,6 @@
       ]}
     >
       {LOCALE_LABEL[code]}
-    </button>
+    </a>
   {/each}
-</div>
+</nav>

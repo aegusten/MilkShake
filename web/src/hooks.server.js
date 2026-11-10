@@ -1,5 +1,6 @@
 import { BACKEND_URL } from '$lib/server/backend.js';
-import { LOCALE_COOKIE, resolveLocale } from '$lib/i18n.js';
+import { redirect } from '@sveltejs/kit';
+import { LOCALES, LOCALE_COOKIE, resolveLocale } from '$lib/i18n.js';
 
 // Hop-by-hop and encoding headers must not be copied across the proxy.
 // Node's fetch has already decompressed the body, so a stale
@@ -45,6 +46,22 @@ export async function handle({ event, resolve }) {
   const path = event.url.pathname;
   if (path.startsWith('/api/') || path.startsWith('/uploads/')) {
     return proxy(event);
+  }
+
+  // ?lang=ru from the language links when JavaScript hasn't loaded yet:
+  // remember it and redirect to the clean URL.
+  const requested = event.url.searchParams.get('lang');
+  if (requested && LOCALES.includes(requested)) {
+    event.cookies.set(LOCALE_COOKIE, requested, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+      httpOnly: false,
+      secure: event.url.protocol === 'https:',
+    });
+    const clean = new URL(event.url);
+    clean.searchParams.delete('lang');
+    redirect(303, `${clean.pathname}${clean.search}`);
   }
 
   const locale = resolveLocale(event.cookies.get(LOCALE_COOKIE));

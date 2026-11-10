@@ -37,13 +37,27 @@ test('menu in russian has no violations', async ({ page, context, baseURL }) => 
 
 test('language switch survives a reload', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'RUS' }).click();
+  await page.getByRole('link', { name: 'RUS' }).click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
-  await page.getByRole('button', { name: 'ENG' }).click();
+  await page.getByRole('link', { name: 'ENG' }).click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pick a drink. Add to order. Done.');
+});
+
+test.describe('without javascript', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('the menu renders and the language can still be switched', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 3 }).first()).toBeVisible();
+    await page.getByRole('link', { name: 'RUS' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Выберите напиток. Добавьте. Готово.');
+  });
 });
 
 test('menu with a filled cart has no violations', async ({ page }) => {
