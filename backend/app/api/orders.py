@@ -1,14 +1,17 @@
-from typing import Any, List, Literal, Optional
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, Security, status
 from fastapi.responses import StreamingResponse
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import realtime
-from app.api.admin_catalog import require_admin
+from app.api.admin_catalog import bearer_scheme, require_admin
 from app.api.sse import open_stream, sse_response
-from app.db import AsyncSessionLocal, get_db
+from app.db import get_db
 from app.models.order import Order
 from app.schemas.order import (
     DisplayTicketOut,
@@ -17,7 +20,7 @@ from app.schemas.order import (
     OrderItemOut,
     OrderOut,
 )
-from app.services import order_service
+from app.services import auth_service, order_service
 
 router = APIRouter()
 
@@ -132,7 +135,7 @@ async def get_order(order_id: UUID, db: AsyncSession = Depends(get_db)) -> Guest
     return build_guest_order_out(await order_service.get_order(db, order_id))
 
 
-@router.get("/display/ready", response_model=List[DisplayTicketOut])
+@router.get("/display/ready", response_model=list[DisplayTicketOut])
 async def display_ready(db: AsyncSession = Depends(get_db)) -> list[DisplayTicketOut]:
     """Public feed for the pickup TV. Ticket numbers only."""
     orders = await order_service.list_ready_for_display(db)
@@ -144,11 +147,11 @@ async def display_ready(db: AsyncSession = Depends(get_db)) -> list[DisplayTicke
 
 @router.get(
     "/admin/orders",
-    response_model=List[OrderOut],
+    response_model=list[OrderOut],
     dependencies=[Depends(require_admin)],
 )
 async def list_orders(
-    status_filter: Optional[List[str]] = Query(default=None, alias="status"),
+    status_filter: list[str] | None = Query(default=None, alias="status"),
     db: AsyncSession = Depends(get_db),
 ) -> list[OrderOut]:
     orders = await order_service.list_orders(db, status_filter)
@@ -175,21 +178,41 @@ async def change_order_status(
 # --- Live streams -----------------------------------------------------------
 #
 # Each stream opens with a snapshot of current state, then sends changes.
-# Snapshots use their own short session so no database connection is held
-# for the life of the stream.
+#
+# These routes must not take a session through Depends(get_db), directly or
+# via require_admin: FastAPI closes such a session only when the response
+# ends, which for a stream is when the browser leaves. Each open staff screen
+# then held a connection and an open transaction for hours, which drains the
+# pool and blocks migrations. Every database touch here uses short_session,
+# which closes before the stream starts.
 
 
-@router.get(
-    "/stream/admin",
-    dependencies=[Depends(require_admin)],
-    response_class=StreamingResponse,
-)
-async def stream_admin(request: Request) -> StreamingResponse:
+@asynccontextmanager
+async def short_session(request: Request) -> AsyncIterator[AsyncSession]:
+    # Honors the same override tests install for get_db.
+    provider = request.app.dependency_overrides.get(get_db, get_db)
+    sessions = provider()
+    session = await anext(sessions)
+    try:
+        yield session
+    finally:
+        await sessions.aclose()
+
+
+@router.get("/stream/admin", response_class=StreamingResponse)
+async def stream_admin(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
+) -> StreamingResponse:
     """Open orders, then every new order and status change. Bearer auth, so
     the admin page reads it with fetch() rather than EventSource."""
+    async with short_session(request) as db:
+        await auth_service.verify_access_token(
+            db, credentials.credentials if credentials else None
+        )
 
     async def snapshot() -> list[dict[str, Any]]:
-        async with AsyncSessionLocal() as db:
+        async with short_session(request) as db:
             orders = await order_service.list_orders(db, order_service.ACTIVE_STATUSES)
         return [
             {
@@ -209,7 +232,7 @@ async def stream_display(request: Request) -> StreamingResponse:
     so the screen never has to merge or can drift."""
 
     async def snapshot() -> list[dict[str, Any]]:
-        async with AsyncSessionLocal() as db:
+        async with short_session(request) as db:
             return [{"type": "tickets", "tickets": await _display_tickets(db)}]
 
     return sse_response(
@@ -218,14 +241,13 @@ async def stream_display(request: Request) -> StreamingResponse:
 
 
 @router.get("/stream/orders/{order_id}", response_class=StreamingResponse)
-async def stream_guest_order(
-    order_id: UUID, request: Request, db: AsyncSession = Depends(get_db)
-) -> StreamingResponse:
+async def stream_guest_order(order_id: UUID, request: Request) -> StreamingResponse:
     """One guest's order, so their phone flips to Ready without polling."""
-    await order_service.get_order(db, order_id)  # 404 before opening a stream
+    async with short_session(request) as db:
+        await order_service.get_order(db, order_id)  # 404 before opening a stream
 
     async def snapshot() -> list[dict[str, Any]]:
-        async with AsyncSessionLocal() as s:
+        async with short_session(request) as s:
             order = await order_service.get_order(s, order_id)
         return [{"type": "order", "order": build_guest_order_out(order).model_dump(mode="json")}]
 
