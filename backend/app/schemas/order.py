@@ -1,7 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Annotated, List, Literal, Optional
 
-from pydantic import BaseModel, Field, StringConstraints, field_validator
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints, field_validator
+
+
+def _as_utc(value: datetime) -> datetime:
+    # Columns are TIMESTAMP without time zone, written by Postgres now() in
+    # UTC. Mark them as UTC so browsers don't read them as local time.
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+
+
+UtcDatetime = Annotated[datetime, AfterValidator(_as_utc)]
 
 OrderStatus = Literal["pending", "accepted", "ready", "completed", "cancelled"]
 
@@ -41,11 +50,11 @@ class OrderOut(BaseModel):
     guest_name: Optional[str] = None
     phone: Optional[str] = None
     status: OrderStatus
-    created_at: datetime
-    accepted_at: Optional[datetime] = None
-    ready_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    cancelled_at: Optional[datetime] = None
+    created_at: UtcDatetime
+    accepted_at: Optional[UtcDatetime] = None
+    ready_at: Optional[UtcDatetime] = None
+    completed_at: Optional[UtcDatetime] = None
+    cancelled_at: Optional[UtcDatetime] = None
     items: List[OrderItemOut]
     total: float
 
@@ -56,11 +65,11 @@ class GuestOrderOut(BaseModel):
     id: str
     ticket: str
     status: OrderStatus
-    created_at: datetime
+    created_at: UtcDatetime
     items: List[OrderItemOut]
     total: float
 
 
 class DisplayTicketOut(BaseModel):
     ticket: str
-    ready_at: Optional[datetime] = None
+    ready_at: Optional[UtcDatetime] = None

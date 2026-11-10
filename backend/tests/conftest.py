@@ -7,8 +7,9 @@ asyncpg's connection pool, the engine is recreated per test and uses
 deterministic.
 """
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
@@ -26,6 +27,7 @@ from app.db import get_db
 from app.main import app
 from app.models.admin import Admin
 from app.models.base import Base
+from app.realtime import InMemoryBroadcaster, set_broadcaster
 from app.utils.security import create_access_token, hash_password
 
 TEST_DB_NAME = "milkshake_test"
@@ -55,6 +57,15 @@ async def _ensure_test_database() -> None:
                 pass
     finally:
         await engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def in_memory_broadcaster() -> Iterator[InMemoryBroadcaster]:
+    """Tests never touch Redis, even when the container sets REDIS_URL."""
+    broadcaster = InMemoryBroadcaster()
+    set_broadcaster(broadcaster)
+    yield broadcaster
+    set_broadcaster(None)
 
 
 @pytest_asyncio.fixture

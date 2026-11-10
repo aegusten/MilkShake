@@ -128,3 +128,11 @@ async def test_admin_list_rejects_unknown_status(client, admin_headers):
     )
 
     assert response.status_code == 400
+
+
+async def test_timestamps_are_sent_as_utc(client, session):
+    drink = await _seed_drink(session)
+
+    body = await _place(client, drink)
+
+    assert body["created_at"].endswith("Z") or body["created_at"].endswith("+00:00")
