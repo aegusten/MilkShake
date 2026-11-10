@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fontsource/bebas-neue": "^5.1.1",
+    "@fontsource/oswald": "^5.1.1",
     "compression": "^1.7.5",
     "qrcode": "^1.5.4"
   },

@@ -5,11 +5,14 @@
    origin (about 1.5s of first paint on 3G), and three body weights were
    another 37 KB racing the first paint. */
 @import "@fontsource/bebas-neue/400.css";
+/* Bebas Neue has no Cyrillic. Oswald's Cyrillic subset stands in for Russian
+   headings; its unicode-range means English and Uzbek pages never fetch it. */
+@import "@fontsource/oswald/cyrillic-500.css";
 
 /* Design tokens. Every color pair used for text was checked for WCAG AA
    (4.5:1 for body text, 3:1 for large display text). */
 @theme {
-  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-display: "Bebas Neue", "Oswald", "Arial Narrow", sans-serif;
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 
   --color-ink: #0c0c0d;

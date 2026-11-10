@@ -35,6 +35,17 @@ test('menu in russian has no violations', async ({ page, context, baseURL }) => 
   await scan(page);
 });
 
+test('language switch survives a reload', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'RUS' }).click();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+  await page.getByRole('button', { name: 'ENG' }).click();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Pick a drink. Add to order. Done.');
+});
+
 test('menu with a filled cart has no violations', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /^Add .* to order$/ }).first().click();
