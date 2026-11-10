@@ -1,10 +1,11 @@
 # backend/app/models/admin.py
 import uuid
-from sqlalchemy import (
-    Boolean, Column, TIMESTAMP, TEXT, text
-)
+
+from sqlalchemy import TEXT, TIMESTAMP, Boolean, Column, text
 from sqlalchemy.dialects.postgresql import UUID
+
 from .base import Base
+
 
 class Admin(Base):
     __tablename__ = "admins"

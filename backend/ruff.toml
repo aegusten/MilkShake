@@ -1,0 +1,12 @@
+target-version = "py311"
+line-length = 100
+extend-exclude = ["alembic/versions"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP"]
+# Long SQL strings and docstrings read better unwrapped.
+ignore = ["E501"]
+
+[lint.per-file-ignores]
+# FastAPI's Depends() in defaults is the framework's own idiom.
+"app/api/*.py" = ["B008"]

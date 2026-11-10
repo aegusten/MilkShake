@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from typing import Annotated, List, Literal, Optional
+from datetime import UTC, datetime
+from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field, StringConstraints, field_validator
 
@@ -7,7 +7,7 @@ from pydantic import AfterValidator, BaseModel, Field, StringConstraints, field_
 def _as_utc(value: datetime) -> datetime:
     # Columns are TIMESTAMP without time zone, written by Postgres now() in
     # UTC. Mark them as UTC so browsers don't read them as local time.
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+    return value.replace(tzinfo=UTC) if value.tzinfo is None else value
 
 
 UtcDatetime = Annotated[datetime, AfterValidator(_as_utc)]
@@ -21,15 +21,13 @@ class OrderItemCreate(BaseModel):
 
 
 class OrderCreate(BaseModel):
-    guest_name: Optional[
-        Annotated[str, StringConstraints(strip_whitespace=True, max_length=80)]
-    ] = None
-    phone: Optional[str] = None
-    items: List[OrderItemCreate]
+    guest_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=80)] | None = None
+    phone: str | None = None
+    items: list[OrderItemCreate]
 
     @field_validator("guest_name")
     @classmethod
-    def _blank_name_is_none(cls, value: Optional[str]) -> Optional[str]:
+    def _blank_name_is_none(cls, value: str | None) -> str | None:
         return value or None
 
 
@@ -47,15 +45,15 @@ class OrderOut(BaseModel):
     id: str
     ticket_number: int
     ticket: str
-    guest_name: Optional[str] = None
-    phone: Optional[str] = None
+    guest_name: str | None = None
+    phone: str | None = None
     status: OrderStatus
     created_at: UtcDatetime
-    accepted_at: Optional[UtcDatetime] = None
-    ready_at: Optional[UtcDatetime] = None
-    completed_at: Optional[UtcDatetime] = None
-    cancelled_at: Optional[UtcDatetime] = None
-    items: List[OrderItemOut]
+    accepted_at: UtcDatetime | None = None
+    ready_at: UtcDatetime | None = None
+    completed_at: UtcDatetime | None = None
+    cancelled_at: UtcDatetime | None = None
+    items: list[OrderItemOut]
     total: float
 
 
@@ -66,10 +64,10 @@ class GuestOrderOut(BaseModel):
     ticket: str
     status: OrderStatus
     created_at: UtcDatetime
-    items: List[OrderItemOut]
+    items: list[OrderItemOut]
     total: float
 
 
 class DisplayTicketOut(BaseModel):
     ticket: str
-    ready_at: Optional[UtcDatetime] = None
+    ready_at: UtcDatetime | None = None

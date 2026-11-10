@@ -4,7 +4,7 @@ from app.schemas.drink import DrinkCreate
 from app.schemas.item_master import ItemMasterCreate
 from app.schemas.order import OrderCreate, OrderItemCreate
 from app.services import catalog_service, order_service
-from app.services.errors import InvalidInputError, NotFoundError
+from app.services.errors import NotFoundError
 
 
 async def _seed_drink(session, name: str = "Vanilla Shake", price: int = 15000):

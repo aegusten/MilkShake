@@ -44,7 +44,7 @@ async def open_stream(
         while True:
             try:
                 event = await asyncio.wait_for(queue.get(), timeout=heartbeat)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if await is_disconnected():
                     return
                 # A named event rather than an SSE comment, because browsers

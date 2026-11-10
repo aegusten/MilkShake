@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from datetime import date, datetime
-from typing import Dict, Iterable
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
@@ -15,7 +15,7 @@ from app.services.errors import ConflictError, InvalidInputError, NotFoundError
 
 # Every status an order can move to from a given status. Anything not listed
 # is refused with a 409. completed and cancelled are terminal.
-ALLOWED_TRANSITIONS: Dict[str, frozenset[str]] = {
+ALLOWED_TRANSITIONS: dict[str, frozenset[str]] = {
     "pending": frozenset({"accepted", "cancelled"}),
     "accepted": frozenset({"ready", "cancelled"}),
     "ready": frozenset({"completed", "cancelled"}),
@@ -69,7 +69,7 @@ async def place_order(
     if not payload.items:
         raise InvalidInputError("Order items required.")
 
-    quantities: Dict[str, int] = {}
+    quantities: dict[str, int] = {}
     for item in payload.items:
         quantities[item.drink_id] = quantities.get(item.drink_id, 0) + item.quantity
 

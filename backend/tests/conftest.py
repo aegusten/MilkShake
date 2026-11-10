@@ -22,9 +22,9 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from app.config import get_settings
-from app.models import admin, drink, drink_image, item_master, order  # noqa: F401
 from app.db import get_db
 from app.main import app
+from app.models import admin, drink, drink_image, item_master, order  # noqa: F401
 from app.models.admin import Admin
 from app.models.base import Base
 from app.realtime import InMemoryBroadcaster, set_broadcaster
@@ -109,12 +109,12 @@ async def client(session_factory) -> AsyncIterator[AsyncClient]:
 
 @pytest_asyncio.fixture
 async def admin_headers(session) -> dict[str, str]:
-    admin = Admin(
+    staff = Admin(
         email="staff@example.com",
         password_hash=hash_password("Password123"),
         is_active=True,
     )
-    session.add(admin)
+    session.add(staff)
     await session.commit()
-    token, _ = create_access_token(admin.id)
+    token, _ = create_access_token(staff.id)
     return {"Authorization": f"Bearer {token}"}

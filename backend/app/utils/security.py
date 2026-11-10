@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import jwt
@@ -26,7 +26,7 @@ def create_access_token(admin_id: UUID | str) -> tuple[str, int]:
     its own local expiry).
     """
     settings = get_settings()
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     expires_at = now + timedelta(minutes=settings.JWT_ACCESS_TTL_MINUTES)
     payload = {
         "sub": str(admin_id),

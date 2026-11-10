@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,14 +11,14 @@ from app.services import catalog_service
 router = APIRouter()
 
 
-@router.get("/item-masters", response_model=List[ItemMasterOut])
+@router.get("/item-masters", response_model=list[ItemMasterOut])
 async def list_item_masters(db: AsyncSession = Depends(get_db)):
     return await catalog_service.list_item_masters(db)
 
 
-@router.get("/drinks", response_model=List[DrinkOut])
+@router.get("/drinks", response_model=list[DrinkOut])
 async def list_drinks(
-    item_master_id: Optional[str] = None,
+    item_master_id: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     parsed: UUID | None = None

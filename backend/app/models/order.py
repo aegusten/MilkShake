@@ -1,10 +1,24 @@
 # backend/app/models/order.py
 import uuid
-from sqlalchemy import Column, DATE, TEXT, TIMESTAMP, text, Numeric, Integer, ForeignKey, UniqueConstraint, Index
+
+from sqlalchemy import (
+    DATE,
+    TEXT,
+    TIMESTAMP,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from .base import Base
 from .enums import ORDER_STATUS
+
 
 class Order(Base):
     __tablename__ = "orders"
