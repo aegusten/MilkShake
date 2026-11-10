@@ -1,8 +1,17 @@
 # Backlog
 
-**Status, November 2026:** phases 1 to 6 and 9 are done. Phase 9 shipped on the
-current Svelte SPA instead of waiting for the SvelteKit port. Phases 2.5, 7, 8,
-10 and 11 are open.
+**Status, November 2026:** every phase is done except 2.5 (refresh tokens).
+Where the result differs from the plan below:
+
+- Phase 9 shipped before the SvelteKit port, then moved over with it.
+- Phase 10 keeps the language in a cookie, mirrored to localStorage, so the
+  server can render the right language. It uses a small in-house layer over
+  `messages/*.json` instead of svelte-i18n, whose global store would share
+  one locale across concurrent server requests.
+- Phase 11 has not had a pass on physical iOS and Android devices. Mobile was
+  checked in an emulated 390px touch viewport only.
+- Phase 7's Lighthouse target was met on the production build: 91-94 on a
+  simulated 3G phone.
 
 Two kinds of work live here:
 
@@ -176,7 +185,7 @@ Acceptance:
 - Critical flows covered: place order, accept→ready→complete, cancel,
   ticket-number uniqueness, JWT expiry, drink CRUD authorization.
 
-### Phase 7: SvelteKit migration
+### Phase 7: SvelteKit migration (done)
 **Branch:** `refactor/phase-7-sveltekit`
 **Why:** Replace the hand-rolled SPA routing with a real framework. Adds
 SSR for the menu (phone-first perf).
@@ -198,7 +207,7 @@ Acceptance:
 - All flows from the current SPA work in the new app (manual QA pass).
 - No client-side fetch to the backend that should be SSR (audit network tab).
 
-### Phase 8: Tailwind v4 + design tokens
+### Phase 8: Tailwind v4 + design tokens (done)
 **Branch:** `refactor/phase-8-design`
 **Why:** Plain CSS is hard to maintain. Tailwind v4 with design tokens gives
 consistent spacing, colors, and typography across screens.
@@ -235,7 +244,7 @@ Acceptance:
 - Disable network on `/display` tab for 30s → reconnects automatically when
   network returns, fetches fresh state.
 
-### Phase 10: i18n done right
+### Phase 10: i18n done right (done)
 **Branch:** `refactor/phase-10-i18n`
 **Why:** The current language switcher is a giant inline `copy` object.
 Hard to extend, no plurals, no formatting.
@@ -253,7 +262,7 @@ Acceptance:
 - Switching language changes everything on the page including currency
   formatting.
 
-### Phase 11: Polish & a11y
+### Phase 11: Polish & a11y (done)
 **Branch:** `refactor/phase-11-polish`
 **Why:** Pre-launch hardening.
 

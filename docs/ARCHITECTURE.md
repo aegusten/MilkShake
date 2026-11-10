@@ -71,7 +71,7 @@ Layers:
 
 Server-side rendered for the public menu (fast first paint on slow phone
 networks) and client-side for the admin and display screens. Lives in
-`web/` after the migration (currently `frontend/`).
+`web/` (SvelteKit).
 
 Pages:
 
