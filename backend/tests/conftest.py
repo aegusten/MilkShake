@@ -10,6 +10,7 @@ deterministic.
 from collections.abc import AsyncIterator
 
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.ext.asyncio import (
@@ -21,7 +22,11 @@ from sqlalchemy.pool import NullPool
 
 from app.config import get_settings
 from app.models import admin, drink, drink_image, item_master, order  # noqa: F401
+from app.db import get_db
+from app.main import app
+from app.models.admin import Admin
 from app.models.base import Base
+from app.utils.security import create_access_token, hash_password
 
 TEST_DB_NAME = "milkshake_test"
 
@@ -53,17 +58,52 @@ async def _ensure_test_database() -> None:
 
 
 @pytest_asyncio.fixture
-async def session() -> AsyncIterator[AsyncSession]:
+async def session_factory() -> AsyncIterator[async_sessionmaker[AsyncSession]]:
+    """Fresh schema per test. Hands out a factory so a test can open several
+    independent sessions, which is what the concurrency tests need."""
     await _ensure_test_database()
     engine = create_async_engine(_make_test_url(), poolclass=NullPool)
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        factory = async_sessionmaker(engine, expire_on_commit=False)
-        async with factory() as s:
-            yield s
+        yield async_sessionmaker(engine, expire_on_commit=False)
     finally:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.execute(text("DROP TYPE IF EXISTS drink_type"))
+            await conn.execute(text("DROP TYPE IF EXISTS order_status"))
         await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def session(session_factory) -> AsyncIterator[AsyncSession]:
+    async with session_factory() as s:
+        yield s
+
+
+@pytest_asyncio.fixture
+async def client(session_factory) -> AsyncIterator[AsyncClient]:
+    """HTTP client against the real app, wired to the test database."""
+
+    async def _test_db() -> AsyncIterator[AsyncSession]:
+        async with session_factory() as s:
+            yield s
+
+    app.dependency_overrides[get_db] = _test_db
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def admin_headers(session) -> dict[str, str]:
+    admin = Admin(
+        email="staff@example.com",
+        password_hash=hash_password("Password123"),
+        is_active=True,
+    )
+    session.add(admin)
+    await session.commit()
+    token, _ = create_access_token(admin.id)
+    return {"Authorization": f"Bearer {token}"}

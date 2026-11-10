@@ -23,6 +23,13 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TTL_MINUTES: int = 480
 
+    # Ticket numbers reset at midnight in this timezone.
+    BAR_TIMEZONE: str = "Asia/Tashkent"
+
+    # Optional. When set, realtime events go through Redis so several
+    # backend workers share one stream. Unset means in-process only.
+    REDIS_URL: str | None = None
+
     BACKEND_CORS_ORIGINS: str = "http://localhost:5173,http://localhost:5174"
 
     @property

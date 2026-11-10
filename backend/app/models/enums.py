@@ -13,3 +13,13 @@ DRINK_TYPE = Enum(
     create_type=True,  
     inherit_schema=True
 )
+
+# Order lifecycle. See docs/BUSINESS_LOGIC.md for the allowed transitions.
+ORDER_STATUSES = ("pending", "accepted", "ready", "completed", "cancelled")
+
+ORDER_STATUS = Enum(
+    *ORDER_STATUSES,
+    name="order_status",
+    native_enum=True,
+    create_type=True,
+)
