@@ -33,6 +33,7 @@
       type="button"
       class="btn-ghost mt-auto w-full"
       aria-label={i18n.t('menu.addNamed', { name: drink.name })}
+      data-replay={`add:${drink.id}`}
       onclick={() => onadd(drink)}
     >
       {i18n.t('menu.add')}

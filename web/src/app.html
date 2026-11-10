@@ -6,6 +6,23 @@
     <meta name="theme-color" content="#0c0c0d" />
     <link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
     %sveltekit.head%
+    <script>
+      // On a slow phone the menu is on screen a few seconds before its
+      // scripts run, and taps in that window used to do nothing. Remember
+      // taps on buttons marked data-replay; the layout replays them once the
+      // app is live (see +layout.svelte).
+      document.addEventListener(
+        'click',
+        function (e) {
+          if (document.documentElement.dataset.hydrated) return;
+          var b = e.target.closest && e.target.closest('button[data-replay]');
+          if (!b) return;
+          (window.__msPending = window.__msPending || []).push(b.getAttribute('data-replay'));
+          b.setAttribute('aria-busy', 'true');
+        },
+        true
+      );
+    </script>
   </head>
   <body data-sveltekit-preload-data="hover">
     <div style="display: contents">%sveltekit.body%</div>
