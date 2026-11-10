@@ -34,14 +34,14 @@ Everything a guest sees is in English, Russian and Uzbek.
 | Frontend | SvelteKit 2 + Svelte 5, Tailwind CSS v4, server-rendered menu |
 | Auth | JWT bearer for staff |
 | Database | PostgreSQL 15 |
-| Quality | pytest (76), Playwright + axe-core (15), ruff, svelte-check, GitHub Actions |
+| Quality | pytest (76), Playwright + axe-core (17), ruff, svelte-check, GitHub Actions |
 | Infra | Docker Compose |
 
 ## Numbers
 
 | Check | Result |
 |---|---|
-| Lighthouse, menu on a simulated 3G phone (prod build) | Performance 91-94, Accessibility 100, SEO 100 |
+| Lighthouse, menu on a simulated 3G phone (prod build, HTTPS) | Performance 96-99, Accessibility 100, Best Practices 100, SEO 100 |
 | axe-core, WCAG 2.1 A + AA | 0 violations on every screen, in English and Russian |
 | Keyboard only | A ticket goes accept, ready, picked up with Enter alone |
 | Without JavaScript | Menu renders and the language can be switched |
@@ -121,14 +121,31 @@ The seed creates sample drinks and an admin `admin@example.com` /
 Containers: Postgres on host port `55432`, Redis (internal only), backend on
 `8000`, SvelteKit dev server on `5173`.
 
-### Production build
+### Deploy (HTTPS)
+
+`docker-compose.prod.yml` runs the production build behind Caddy, which gets
+a Let's Encrypt certificate on its own. Only ports 80 and 443 are published;
+Postgres, Redis and the API stay on the internal network. The backend
+migrates on start and runs 2 workers, with Redis keeping their live events
+in step.
 
 ```bash
-docker build --target prod -t milkshake-web ./web
-docker run -p 3000:3000 -e BACKEND_URL=http://backend:8000 -e ORIGIN=https://your.domain milkshake-web
+# point the domain's DNS at the server, fill .env, then:
+DOMAIN=menu.example.com docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec backend python -m app.scripts.create_superuser \
+  --email you@example.com --password '<strong password>'
 ```
 
-Put TLS in front (Caddy or nginx). `ORIGIN` must be the public URL.
+To try it locally with a certificate from Caddy's own CA:
+
+```bash
+DOMAIN=milkshake.test HTTP_PORT=8080 HTTPS_PORT=8443 PUBLIC_PORT_SUFFIX=:8443 \
+  docker compose -p milkshake-prod -f docker-compose.prod.yml -f docker-compose.https-local.yml up -d --build
+curl -k --resolve milkshake.test:8443:127.0.0.1 https://milkshake.test:8443/
+```
+
+Over HTTPS, Lighthouse on a simulated 3G phone scored Performance 96-99 and
+100 for Accessibility, Best Practices and SEO.
 
 ## Tests
 
