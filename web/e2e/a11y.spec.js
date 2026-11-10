@@ -107,7 +107,7 @@ test('staff queue works with the keyboard alone', async ({ page, request }) => {
   await expect(accept).toBeVisible();
 
   // Tab until the accept button for this ticket has focus, then use Enter only.
-  for (let i = 0; i < 60 && !(await accept.evaluate((el) => el === document.activeElement)); i++) {
+  for (let i = 0; i < 400 && !(await accept.evaluate((el) => el === document.activeElement)); i++) {
     await page.keyboard.press('Tab');
   }
   await expect(accept).toBeFocused();

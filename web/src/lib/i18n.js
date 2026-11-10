@@ -45,6 +45,14 @@ export function translate(locale, key, params = {}) {
 }
 
 export function formatPrice(locale, value) {
+  if (locale === 'uz') {
+    // Built by hand: browsers ship patchy Uzbek data. Chrome 157 claims to
+    // support uz-Latn-UZ yet formats "UZS 8,000", while Node gives
+    // "8 000 soʻm", so the server and the browser disagreed and the page
+    // switched format as it loaded. Grouping matches the Uzbek convention.
+    const digits = Math.round(Number(value)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return `${digits} soʻm`;
+  }
   return new Intl.NumberFormat(INTL_TAG[locale], {
     style: 'currency',
     currency: 'UZS',

@@ -80,10 +80,24 @@
     });
   });
   onDestroy(() => stop?.());
+
+  // Keys 1, 2, 3 jump to the first ticket in New, Making, Ready. On a busy
+  // queue a keyboard user would otherwise tab through every card.
+  function jump(event) {
+    const target = event.target;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (target.closest?.('input, textarea, select, [contenteditable]')) return;
+    const column = COLUMNS[Number(event.key) - 1];
+    if (!column) return;
+    event.preventDefault();
+    const first = document.querySelector(`[data-status="${column.status}"] [data-primary]`);
+    (first ?? document.getElementById(`col-${column.status}`))?.focus();
+  }
 </script>
 
 <div class="mb-5 flex flex-wrap items-center gap-3">
   <h1 class="font-display text-5xl">Order queue</h1>
+  <p class="text-sm text-muted" id="queue-keys">Keys 1, 2, 3 jump to New, Making, Ready</p>
   <p class="ml-auto flex items-center gap-2 text-sm font-semibold" data-testid="stream-status">
     <span
       class={['size-2.5 rounded-full', streamStatus === 'live' ? 'bg-ok' : streamStatus === 'reconnecting' ? 'bg-warn' : 'bg-line']}
@@ -92,6 +106,8 @@
     {STREAM_LABEL[streamStatus]}
   </p>
 </div>
+
+<svelte:window onkeydown={jump} />
 
 <p class="sr-only" role="status" aria-live="polite">{announcement}</p>
 
@@ -102,7 +118,12 @@
 <div id="queue" tabindex="-1" class="grid gap-5 lg:grid-cols-3">
   {#each COLUMNS as column}
     <section aria-labelledby={`col-${column.status}`} data-status={column.status}>
-      <h2 id={`col-${column.status}`} class="mb-3 flex items-center gap-2 text-lg font-bold">
+      <h2
+        id={`col-${column.status}`}
+        tabindex="-1"
+        aria-keyshortcuts={String(COLUMNS.indexOf(column) + 1)}
+        class="mb-3 flex items-center gap-2 text-lg font-bold"
+      >
         {column.title}
         <span class="rounded-full bg-fog px-2.5 text-sm">{byStatus[column.status].length}</span>
       </h2>

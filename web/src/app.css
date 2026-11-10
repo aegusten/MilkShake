@@ -101,6 +101,10 @@
   .label {
     @apply flex flex-col gap-1.5 text-sm font-semibold;
   }
+  /* A tap made before the app was live: shown as pending until replayed. */
+  button[aria-busy='true'] {
+    @apply animate-pulse;
+  }
   .skeleton {
     @apply animate-pulse rounded-lg bg-line;
   }

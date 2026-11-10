@@ -41,7 +41,7 @@
   "ticket.status.accepted": "Being made",
   "ticket.status.ready": "Ready! Come to the bar",
   "ticket.status.completed": "Picked up. Enjoy!",
-  "ticket.status.cancelled": "Cancelled. Please ask at the bar.",
+  "ticket.status.cancelled": "Canceled. Please ask at the bar.",
   "footer.about": "MilkShake takes your order straight to the bar. No app, no queue at the till.",
   "display.title": "Ready for pickup",
   "display.empty": "Your number will appear here when your drink is ready.",

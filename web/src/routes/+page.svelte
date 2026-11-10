@@ -174,7 +174,7 @@
         </div>
         <p class="text-2xl font-bold">{featured.name}</p>
         {#if featured.description}<p class="text-muted">{featured.description}</p>{/if}
-        <button type="button" class="btn-accent self-start" onclick={() => add(featured)}>
+        <button type="button" class="btn-accent self-start" data-replay="add-featured" onclick={() => add(featured)}>
           {i18n.t('menu.add')}
         </button>
       </div>
@@ -193,6 +193,7 @@
             <button
               type="button"
               aria-pressed={category === m.id}
+              data-replay={`category:${m.id}`}
               onclick={() => (category = m.id)}
               class={[
                 'btn min-h-10 border',

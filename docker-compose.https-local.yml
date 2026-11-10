@@ -1,0 +1,8 @@
+# Try the production stack with HTTPS on your own machine:
+#   DOMAIN=milkshake.test HTTP_PORT=8080 HTTPS_PORT=8443 PUBLIC_PORT_SUFFIX=:8443 \
+#     docker compose -f docker-compose.prod.yml -f docker-compose.https-local.yml up -d --build
+# Caddy signs the certificate with its own local CA (trust it, or use curl -k).
+services:
+  caddy:
+    volumes:
+      - ./deploy/Caddyfile.local:/etc/caddy/Caddyfile:ro

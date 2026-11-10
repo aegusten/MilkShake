@@ -1,0 +1,88 @@
+# Production stack: HTTPS at the edge, nothing else exposed.
+#   DOMAIN=menu.example.com docker compose -f docker-compose.prod.yml up -d --build
+# Only Caddy publishes ports. Postgres, Redis and the API stay on the
+# internal network; the web server reaches the API by service name.
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: always
+    # Migrate, then serve with two workers. Redis carries live events
+    # between them, so a staff screen on one worker sees orders from the other.
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers"
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - BAR_TIMEZONE=${BAR_TIMEZONE:-Asia/Tashkent}
+      - REDIS_URL=redis://redis:6379/0
+      - BACKEND_CORS_ORIGINS=https://${DOMAIN:-localhost}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      target: prod
+    restart: always
+    environment:
+      - BACKEND_URL=http://backend:8000
+      - ORIGIN=https://${DOMAIN:-localhost}${PUBLIC_PORT_SUFFIX:-}
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: always
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - HTTP_PORT=${HTTP_PORT:-80}
+      - HTTPS_PORT=${HTTPS_PORT:-443}
+    ports:
+      - "${HTTP_PORT:-80}:${HTTP_PORT:-80}"
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT:-443}"
+    networks:
+      default:
+        aliases:
+          - ${DOMAIN:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  uploads:
+  caddy_data:
