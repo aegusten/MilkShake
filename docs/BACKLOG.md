@@ -1,10 +1,23 @@
 # Backlog
 
+**Status, November 2026:** every phase is done except 2.5 (refresh tokens).
+Where the result differs from the plan below:
+
+- Phase 9 shipped before the SvelteKit port, then moved over with it.
+- Phase 10 keeps the language in a cookie, mirrored to localStorage, so the
+  server can render the right language. It uses a small in-house layer over
+  `messages/*.json` instead of svelte-i18n, whose global store would share
+  one locale across concurrent server requests.
+- Phase 11 has not had a pass on physical iOS and Android devices. Mobile was
+  checked in an emulated 390px touch viewport only.
+- Phase 7's Lighthouse target was met on the production build: 91-94 on a
+  simulated 3G phone.
+
 Two kinds of work live here:
 
-1. **Refactor phases** — fixing what's already there. Sequenced; each phase
+1. **Refactor phases**, fixing what's already there. Sequenced; each phase
    has acceptance criteria and ships independently.
-2. **Feature backlog** — new functionality on top of the refactored base.
+2. **Feature backlog**, new functionality on top of the refactored base.
    Prioritized but not strictly sequenced.
 
 ## Refactor phases
@@ -12,7 +25,7 @@ Two kinds of work live here:
 Each phase is one branch (`refactor/phase-N-name`) merged to `main` after
 acceptance.
 
-### Phase 1 — Async backend
+### Phase 1: Async backend (done)
 **Branch:** `refactor/phase-1-async`
 **Why:** Foundation. Sync DB in FastAPI blocks the event loop. SSE needs
 async to handle long-lived connections.
@@ -32,7 +45,7 @@ Acceptance:
 - A k6 or `wrk` smoke test of 100 RPS on `GET /api/drinks` succeeds with no
   blocked event loop warnings.
 
-### Phase 2 — JWT auth (access tokens)
+### Phase 2: JWT auth (access tokens) (done)
 **Branch:** `refactor/phase-2-auth`
 **Why:** Current auth is "send the admin UUID as a header". Anyone with that
 UUID is admin. Critical security fix.
@@ -53,7 +66,7 @@ Scope:
 - New `require_admin` dependency reads `Authorization: Bearer <jwt>` via
   FastAPI's `HTTPBearer`, validates the JWT, returns the loaded `Admin`.
 - `X-Admin-Id` header support removed.
-- Frontend SPA updated: stores token in `localStorage` (interim — moves to
+- Frontend SPA updated: stores token in `localStorage` (interim, moves to
   HttpOnly cookie in Phase 7), sends `Authorization: Bearer` on every admin
   call, clears token + redirects to login on 401.
 
@@ -65,22 +78,22 @@ Acceptance:
   keeps the session (token survives in `localStorage`).
 - No `X-Admin-Id` reference remains in the codebase.
 
-### Phase 2.5 — Refresh tokens (deferred until SvelteKit)
+### Phase 2.5: Refresh tokens (deferred until SvelteKit)
 **Branch:** `refactor/phase-2.5-refresh-tokens` (after Phase 7)
 **Why:** Short-lived access tokens + long-lived refresh in HttpOnly cookie
-is the safe pattern. Cannot be done cleanly on the current SPA — needs a
+is the safe pattern. Cannot be done cleanly on the current SPA, needs a
 server-side endpoint that can `Set-Cookie` with HttpOnly + Secure flags.
 
 Scope (when SvelteKit lands):
 
-- Access TTL drops to 15–30 min.
+- Access TTL drops to 15-30 min.
 - Refresh tokens: 7-day TTL, one-time use, rotated on each refresh.
 - Stored in DB (`admin_refresh_tokens` table) for revocation.
 - SvelteKit `+server.ts` endpoint issues the cookie; browser never sees the
   refresh token directly.
 - Auto-refresh on 401 via SvelteKit `handleFetch` hook.
 
-### Phase 3 — Service layer + settings
+### Phase 3: Service layer + settings (done)
 **Branch:** `refactor/phase-3-services`
 **Why:** Business logic currently lives in route handlers. Hard to test,
 hard to reuse from CLI scripts and SSE handlers.
@@ -100,7 +113,7 @@ Acceptance:
 - All services have at least one unit test (mocked or in-memory DB).
 - Missing env vars cause startup to fail with a clear message.
 
-### Phase 4 — Order status + ticket numbers
+### Phase 4: Order status + ticket numbers (done)
 **Branch:** `refactor/phase-4-order-lifecycle`
 **Why:** The current "Mark ready" button is non-functional. Ticket numbers
 do not exist yet.
@@ -131,7 +144,7 @@ Acceptance:
 - Midnight rollover: an order placed at 23:59:30 gets today's number; one
   placed at 00:00:10 gets tomorrow's #001.
 
-### Phase 5 — Realtime via SSE
+### Phase 5: Realtime via SSE (done)
 **Branch:** `refactor/phase-5-realtime`
 **Why:** Admins should not have to refresh to see new orders. The TV
 `/display` needs live ticket updates.
@@ -154,7 +167,7 @@ Acceptance:
 - An `/display` tab open for 24h does not leak memory or drop the
   connection.
 
-### Phase 6 — Test suite
+### Phase 6: Test suite (done)
 **Branch:** `refactor/phase-6-tests`
 **Why:** Backfill the safety net. Going forward, every PR adds tests for
 its change; this phase establishes the baseline.
@@ -172,7 +185,7 @@ Acceptance:
 - Critical flows covered: place order, accept→ready→complete, cancel,
   ticket-number uniqueness, JWT expiry, drink CRUD authorization.
 
-### Phase 7 — SvelteKit migration
+### Phase 7: SvelteKit migration (done)
 **Branch:** `refactor/phase-7-sveltekit`
 **Why:** Replace the hand-rolled SPA routing with a real framework. Adds
 SSR for the menu (phone-first perf).
@@ -194,7 +207,7 @@ Acceptance:
 - All flows from the current SPA work in the new app (manual QA pass).
 - No client-side fetch to the backend that should be SSR (audit network tab).
 
-### Phase 8 — Tailwind v4 + design tokens
+### Phase 8: Tailwind v4 + design tokens (done)
 **Branch:** `refactor/phase-8-design`
 **Why:** Plain CSS is hard to maintain. Tailwind v4 with design tokens gives
 consistent spacing, colors, and typography across screens.
@@ -211,7 +224,7 @@ Acceptance:
 - Visual regression: screenshot diff against pre-refactor baseline acceptable
   per the customer.
 
-### Phase 9 — Realtime in the UI
+### Phase 9: Realtime in the UI (done)
 **Branch:** `refactor/phase-9-realtime-ui`
 **Why:** With SSE backend ready and SvelteKit migrated, wire up the live
 behavior end-to-end.
@@ -231,7 +244,7 @@ Acceptance:
 - Disable network on `/display` tab for 30s → reconnects automatically when
   network returns, fetches fresh state.
 
-### Phase 10 — i18n done right
+### Phase 10: i18n done right (done)
 **Branch:** `refactor/phase-10-i18n`
 **Why:** The current language switcher is a giant inline `copy` object.
 Hard to extend, no plurals, no formatting.
@@ -249,7 +262,7 @@ Acceptance:
 - Switching language changes everything on the page including currency
   formatting.
 
-### Phase 11 — Polish & a11y
+### Phase 11: Polish & a11y (done)
 **Branch:** `refactor/phase-11-polish`
 **Why:** Pre-launch hardening.
 

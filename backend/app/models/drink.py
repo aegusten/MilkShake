@@ -1,13 +1,13 @@
 # backend/app/models/drink.py
 import uuid
-from decimal import Decimal
-from sqlalchemy import (
-    Column, TEXT, Numeric, TIMESTAMP, text, Index
-)
+
+from sqlalchemy import TEXT, TIMESTAMP, Column, Index, Numeric, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from .base import Base
 from .enums import DRINK_TYPE
+
 
 class Drink(Base):
     __tablename__ = "drinks"

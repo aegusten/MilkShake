@@ -95,7 +95,7 @@ def downgrade() -> None:
         UPDATE drinks d
         SET category_id = sub.item_master_id
         FROM (
-            SELECT drink_id, MIN(item_master_id) AS item_master_id
+            SELECT drink_id, MIN(item_master_id::text)::uuid AS item_master_id
             FROM item_master_drinks
             GROUP BY drink_id
         ) sub

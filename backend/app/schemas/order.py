@@ -1,7 +1,18 @@
-from datetime import datetime
-from typing import Annotated, List, Optional
+from datetime import UTC, datetime
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints, field_validator
+
+
+def _as_utc(value: datetime) -> datetime:
+    # Columns are TIMESTAMP without time zone, written by Postgres now() in
+    # UTC. Mark them as UTC so browsers don't read them as local time.
+    return value.replace(tzinfo=UTC) if value.tzinfo is None else value
+
+
+UtcDatetime = Annotated[datetime, AfterValidator(_as_utc)]
+
+OrderStatus = Literal["pending", "accepted", "ready", "completed", "cancelled"]
 
 
 class OrderItemCreate(BaseModel):
@@ -10,11 +21,14 @@ class OrderItemCreate(BaseModel):
 
 
 class OrderCreate(BaseModel):
-    guest_name: Annotated[
-        str, StringConstraints(strip_whitespace=True, min_length=1)
-    ]
-    phone: Optional[str] = None
-    items: List[OrderItemCreate]
+    guest_name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=80)] | None = None
+    phone: str | None = None
+    items: list[OrderItemCreate]
+
+    @field_validator("guest_name")
+    @classmethod
+    def _blank_name_is_none(cls, value: str | None) -> str | None:
+        return value or None
 
 
 class OrderItemOut(BaseModel):
@@ -26,10 +40,34 @@ class OrderItemOut(BaseModel):
 
 
 class OrderOut(BaseModel):
+    """Full order, for staff."""
+
     id: str
-    guest_name: str
-    phone: Optional[str] = None
-    created_at: datetime
-    status: str
-    items: List[OrderItemOut]
+    ticket_number: int
+    ticket: str
+    guest_name: str | None = None
+    phone: str | None = None
+    status: OrderStatus
+    created_at: UtcDatetime
+    accepted_at: UtcDatetime | None = None
+    ready_at: UtcDatetime | None = None
+    completed_at: UtcDatetime | None = None
+    cancelled_at: UtcDatetime | None = None
+    items: list[OrderItemOut]
     total: float
+
+
+class GuestOrderOut(BaseModel):
+    """What the guest who placed the order may see. No name or phone."""
+
+    id: str
+    ticket: str
+    status: OrderStatus
+    created_at: UtcDatetime
+    items: list[OrderItemOut]
+    total: float
+
+
+class DisplayTicketOut(BaseModel):
+    ticket: str
+    ready_at: UtcDatetime | None = None

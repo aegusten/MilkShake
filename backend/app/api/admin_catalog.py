@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 from fastapi import (
     APIRouter,
@@ -55,7 +54,7 @@ def _parse_uuid(value: str, name: str) -> uuid.UUID:
 # --- Item master endpoints ---
 
 
-@router.get("/item-masters", response_model=List[ItemMasterOut])
+@router.get("/item-masters", response_model=list[ItemMasterOut])
 async def list_item_masters(db: AsyncSession = Depends(get_db)):
     return await catalog_service.list_item_masters(db)
 
@@ -105,7 +104,7 @@ async def delete_item_master(
 # --- Drink endpoints ---
 
 
-@router.get("/drinks", response_model=List[DrinkOut])
+@router.get("/drinks", response_model=list[DrinkOut])
 async def list_drinks(db: AsyncSession = Depends(get_db)):
     return await catalog_service.list_drinks(db)
 

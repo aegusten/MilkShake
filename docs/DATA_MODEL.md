@@ -81,7 +81,7 @@ Bar staff and owner accounts.
 | `created_at` | `timestamp` | |
 
 ### `item_masters`
-What a customer calls "categories" — e.g. "Milkshakes", "Cocktails",
+What a customer calls "categories", e.g. "Milkshakes", "Cocktails",
 "Featured". The internal name `item_master` is preserved from the existing
 schema; renaming is out of scope.
 
@@ -127,14 +127,14 @@ Up to three secondary images per drink (the primary is on `drinks.image_cover`).
 
 Constraints: `UNIQUE(drink_id, position)`.
 
-### `orders` (target schema — post-refactor)
+### `orders` (target schema: post-refactor)
 One customer order. Phase 4 of the refactor adds the ticket-numbering and
 status fields.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | `uuid` PK | |
-| `ticket_number` | `int` | 1–999. Resets daily in bar timezone. |
+| `ticket_number` | `int` | 1-999. Resets daily in bar timezone. |
 | `ticket_date` | `date` | Date in bar timezone. |
 | `guest_name` | `text` NULL | Optional. |
 | `phone` | `text` NULL | Optional. |
@@ -147,16 +147,16 @@ status fields.
 
 Constraints:
 
-- `UNIQUE(ticket_date, ticket_number)` — race-safe daily ticket allocation.
+- `UNIQUE(ticket_date, ticket_number)`, race-safe daily ticket allocation.
 - `CHECK (ticket_number BETWEEN 1 AND 999)`.
-- `CHECK (status != 'cancelled' OR cancelled_at IS NOT NULL)` — terminal
+- `CHECK (status != 'cancelled' OR cancelled_at IS NOT NULL)`, terminal
   timestamps must be set when transitioning to terminal states.
 
 Indexes:
 
-- `idx_orders_status_date` on `(status, ticket_date)` — used by `/display`
+- `idx_orders_status_date` on `(status, ticket_date)`, used by `/display`
   and the admin queue.
-- `idx_orders_ticket_lookup` on `(ticket_date, ticket_number)` — used when
+- `idx_orders_ticket_lookup` on `(ticket_date, ticket_number)`, used when
   the admin looks up a ticket.
 
 ### `order_items`
@@ -165,13 +165,13 @@ Indexes:
 |---|---|---|
 | `id` | `uuid` PK | |
 | `order_id` | `uuid` FK | ON DELETE CASCADE |
-| `drink_id` | `uuid` FK | ON DELETE RESTRICT — preserves history |
+| `drink_id` | `uuid` FK | ON DELETE RESTRICT, preserves history |
 | `quantity` | `int` | Must be ≥ 1 (Pydantic) |
 | `price` | `numeric(10,2)` | Captured at order time (price drift safe) |
 
 Constraints:
 
-- `UNIQUE(order_id, drink_id)` — no duplicate drink lines per order. The API
+- `UNIQUE(order_id, drink_id)`, no duplicate drink lines per order. The API
   merges duplicates before insert.
 
 ## Enums
@@ -196,7 +196,7 @@ These should be true at all times. Tests should cover them.
 4. Every drink has at least one item master while it exists.
 5. `order_items.drink_id` always references a still-existing drink (RESTRICT
    on delete). To "remove" a drink that has historical orders, admins should
-   archive it (a future `is_archived` flag — not in v1).
+   archive it (a future `is_archived` flag, not in v1).
 
 ## Migrations (current state)
 

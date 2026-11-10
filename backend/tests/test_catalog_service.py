@@ -88,3 +88,116 @@ async def test_update_drink_replaces_item_masters(session):
     )
 
     assert [im.id for im in updated.item_masters] == [im_b.id]
+
+
+async def _make_drink(session, name="Mojito", masters=None):
+    masters = masters or [await _make_item_master(session, f"IM-{name}")]
+    return await catalog_service.create_drink(
+        session,
+        DrinkCreate(
+            name=name,
+            price=30000,
+            type="cocktail",
+            item_master_ids=[str(m.id) for m in masters],
+        ),
+    )
+
+
+async def test_update_unknown_item_master_raises_not_found(session):
+    import uuid
+
+    with pytest.raises(NotFoundError):
+        await catalog_service.update_item_master(
+            session, uuid.uuid4(), ItemMasterUpdate(name="x")
+        )
+
+
+async def test_renaming_item_master_onto_existing_name_raises_conflict(session):
+    await _make_item_master(session, "Shakes")
+    other = await _make_item_master(session, "Sodas")
+
+    with pytest.raises(ConflictError):
+        await catalog_service.update_item_master(
+            session, other.id, ItemMasterUpdate(name="Shakes")
+        )
+
+
+async def test_delete_item_master_removes_it(session):
+    im = await _make_item_master(session, "Seasonal")
+
+    await catalog_service.delete_item_master(session, im.id)
+
+    assert all(m.id != im.id for m in await catalog_service.list_item_masters(session))
+
+
+async def test_list_drinks_can_filter_by_item_master(session):
+    shakes = await _make_item_master(session, "Shakes")
+    sodas = await _make_item_master(session, "Sodas")
+    vanilla = await _make_drink(session, "Vanilla", [shakes])
+    await _make_drink(session, "Cola", [sodas])
+
+    only_shakes = await catalog_service.list_drinks(session, shakes.id)
+
+    assert [d.id for d in only_shakes] == [vanilla.id]
+
+
+async def test_update_drink_with_empty_item_masters_raises_invalid_input(session):
+    drink = await _make_drink(session)
+
+    with pytest.raises(InvalidInputError):
+        await catalog_service.update_drink(session, drink.id, DrinkUpdate(item_master_ids=[]))
+
+
+async def test_update_drink_changes_plain_fields(session):
+    drink = await _make_drink(session)
+
+    updated = await catalog_service.update_drink(session, drink.id, DrinkUpdate(price=31000))
+
+    assert float(updated.price) == 31000
+
+
+async def test_update_unknown_drink_raises_not_found(session):
+    import uuid
+
+    with pytest.raises(NotFoundError):
+        await catalog_service.update_drink(session, uuid.uuid4(), DrinkUpdate(price=1))
+
+
+async def test_delete_drink_removes_it(session):
+    drink = await _make_drink(session)
+
+    await catalog_service.delete_drink(session, drink.id)
+
+    assert all(d.id != drink.id for d in await catalog_service.list_drinks(session))
+
+
+async def test_delete_unknown_drink_raises_not_found(session):
+    import uuid
+
+    with pytest.raises(NotFoundError):
+        await catalog_service.delete_drink(session, uuid.uuid4())
+
+
+async def test_drink_image_position_must_be_one_to_three(session):
+    from app.schemas.drink import DrinkImageCreate
+
+    drink = await _make_drink(session)
+
+    with pytest.raises(InvalidInputError):
+        await catalog_service.add_drink_image(
+            session, drink.id, DrinkImageCreate(url="/uploads/a.png", position=4)
+        )
+
+
+async def test_two_images_cannot_share_a_position(session):
+    from app.schemas.drink import DrinkImageCreate
+
+    drink = await _make_drink(session)
+    await catalog_service.add_drink_image(
+        session, drink.id, DrinkImageCreate(url="/uploads/a.png", position=1)
+    )
+
+    with pytest.raises(ConflictError):
+        await catalog_service.add_drink_image(
+            session, drink.id, DrinkImageCreate(url="/uploads/b.png", position=1)
+        )

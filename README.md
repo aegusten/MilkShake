@@ -1,437 +1,201 @@
 # MilkShake
 
-QR-driven drink ordering web app for a single milkshake bar. Customers scan
-a QR code on the bar's TV, order from their phone, and get a ticket number.
-Staff manage the queue from an admin panel; when a drink is ready, the
-ticket number flashes on a second TV so the customer knows to pick it up.
+[![CI](https://github.com/aegusten/MilkShake/actions/workflows/ci.yml/badge.svg)](https://github.com/aegusten/MilkShake/actions/workflows/ci.yml)
 
-For business rules, architecture, data model, and roadmap, see
-[`docs/`](docs/).
+QR ordering for a drink bar. Guests scan a code, order from their phone and
+get a ticket number. Staff work the queue on a tablet. When a drink is ready
+the number lights up on a TV by the bar, and the guest's phone flips to
+"Ready" on its own. No app to install, no refreshing.
 
----
-
-## Stack at a glance
-
-| Layer | Today | Future (per [BACKLOG.md](docs/BACKLOG.md)) |
-|---|---|---|
-| Backend | FastAPI (async) + SQLAlchemy 2.0 async + asyncpg | + SSE realtime broadcaster |
-| Auth | JWT bearer, 8 h access TTL | + refresh tokens via HttpOnly cookie (Phase 7) |
-| DB | PostgreSQL 15, Alembic migrations | + `order_status` enum and ticket numbers (Phase 4) |
-| Frontend | Svelte 5 SPA + Vite | SvelteKit (SSR) + Tailwind v4 (Phase 7-8) |
-| Tests | pytest + pytest-asyncio (service layer) | + integration + e2e (Phase 6) |
-| Infra | Docker Compose | + Redis pub/sub, Caddy TLS (Phase 5 / prod) |
-
----
-
-## Prerequisites
-
-You only need three things on the host:
-
-| Tool | Version | Used for |
-|---|---|---|
-| **Docker Desktop** (Windows/macOS) or **Docker Engine + Compose v2** (Linux) | 20.10+ | Running everything |
-| **Git** | any recent | Cloning the repo |
-| **Python 3.11+** | (one-liner only) | Generating the JWT secret |
-
-You do **not** need Python, Node.js, or PostgreSQL installed on the host —
-they all run inside containers.
-
-Disk: ~3 GB free for Docker images.
-
----
-
-## First-time setup (end-to-end)
-
-Open a terminal in the directory where you want the project to live.
-
-### 1. Clone the repo
-
-```powershell
-git clone <repo-url> milkshake
-cd milkshake
-```
-
-### 2. Create your local `.env`
-
-```powershell
-# PowerShell (Windows)
-Copy-Item .env.example .env
-
-# Bash (macOS / Linux / Git Bash)
-cp .env.example .env
-```
-
-### 3. Fill in `.env`
-
-Open `.env` in your editor and set two values:
-
-**a) Postgres password** — change `change-me-locally` to anything strong.
-
-**b) `JWT_SECRET`** — must be at least 32 characters. Generate one with:
-
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-Copy the output into `JWT_SECRET=` in `.env`.
-
-> **If you've run the project before** with a different Postgres password,
-> the existing Docker volume is bound to the old password and will refuse
-> the new one. Wipe it first: `docker compose down -v` (destructive — drops
-> the dev DB).
-
-### 4. Build the images
-
-```powershell
-docker compose build
-```
-
-This builds two images: `milkshake-backend` (Python 3.11 + FastAPI deps)
-and `milkshake-frontend` (Node 20 + Vite). Postgres uses the official
-`postgres:15` image — nothing to build.
-
-First build takes 1-2 minutes. Subsequent builds are cached and quick.
-
-### 5. Start the stack
-
-```powershell
-docker compose up -d
-```
-
-Three containers come up:
-
-| Container | Host port | Inside the network |
-|---|---|---|
-| `milkshake_db` (Postgres 15) | `55432` | `db:5432` |
-| `milkshake_backend` (FastAPI) | `8000` | `backend:8000` |
-| `milkshake_frontend` (Vite dev server) | `5173` | `frontend:5173` |
-
-Watch the backend logs until you see `Application startup complete`:
-
-```powershell
-docker compose logs -f backend
-```
-
-(Ctrl+C exits the tail; the container keeps running.)
-
-### 6. Apply the database migrations
-
-```powershell
-docker compose exec backend alembic upgrade head
-```
-
-This creates the schema (admins, drinks, item_masters, orders, etc.).
-
-### 7. Seed the database
-
-Two options — pick one.
-
-**Option A — full dev seed (recommended for first-time setup):** creates a
-default admin plus three item masters and six sample drinks so the menu
-isn't empty when you open the UI. Idempotent.
-
-```powershell
-docker compose exec backend python -m app.scripts.seed_data
-```
-
-Default admin: `admin@example.com` / `ChangeMe123`. Change the password
-before launch.
-
-**Option B — admin only (no sample catalog):**
-
-```powershell
-docker compose exec backend python -m app.scripts.create_superuser `
-  --email you@example.com --password ChangeMe123
-```
-
-> The backtick at end of line is PowerShell's line continuation. In Bash,
-> use `\` instead, or just put the whole command on one line.
-
-You're done. Open http://localhost:5173/admin and log in.
-
----
-
-## URLs
-
-| URL | Audience |
+| Staff queue | Guest's phone (Russian) |
 |---|---|
-| http://localhost:5173 | Customer menu |
-| http://localhost:5173/admin | Bar staff panel (login required) |
-| http://localhost:5173/qr | TV #1 — QR code page |
-| http://localhost:5173/display | TV #2 — ready-tickets page (Phase 5+) |
-| http://localhost:8000 | API root |
-| http://localhost:8000/docs | Swagger UI |
-| http://localhost:8000/redoc | ReDoc UI |
-| `localhost:55432` | Postgres (credentials in `.env`) |
+| ![Staff queue](docs/screenshots/staff-queue.jpg) | ![Guest ticket](docs/screenshots/guest-ticket-ru.jpg) |
 
----
+| Menu | Pickup TV |
+|---|---|
+| ![Menu](docs/screenshots/menu.jpg) | ![Pickup TV](docs/screenshots/pickup-tv.jpg) |
 
-## Project layout
+## How it works
 
-```
-milkshake/
-├── backend/
-│   ├── alembic/                  # DB migrations
-│   ├── app/
-│   │   ├── api/                  # HTTP route handlers (thin)
-│   │   ├── models/               # SQLAlchemy ORM models
-│   │   ├── schemas/              # Pydantic request/response shapes
-│   │   ├── services/             # Business logic (auth, catalog, orders, uploads)
-│   │   ├── scripts/              # CLI utilities (create_superuser)
-│   │   ├── utils/                # Helpers (passwords, JWT)
-│   │   ├── config.py             # pydantic-settings entry
-│   │   ├── db.py                 # Async engine + session factory
-│   │   └── main.py               # FastAPI app, middleware, exception handlers
-│   ├── tests/                    # pytest suite (service layer)
-│   ├── Dockerfile
-│   ├── pytest.ini
-│   └── requirements.txt
-├── frontend/                     # Svelte SPA (-> SvelteKit in Phase 7)
-│   ├── src/
-│   │   ├── api/                  # API client (Bearer token, fetch)
-│   │   ├── components/
-│   │   │   ├── admin/            # Admin UI
-│   │   │   └── public/           # Customer + QR UI
-│   │   └── App.svelte            # Path-based route resolver
-│   ├── Dockerfile
-│   └── package.json
-├── docs/                         # ARCHITECTURE / BUSINESS_LOGIC / DATA_MODEL / BACKLOG
-├── docker-compose.yml
-├── .env.example                  # Template env vars (committed)
-└── .env                          # Real env vars (gitignored)
-```
+1. A guest scans the QR at the bar, picks drinks and places the order. They get ticket `#007`.
+2. The order appears on every staff screen instantly under **New**.
+3. Staff tap **Accept**, then **Mark ready**. The TV shows `007`, the guest's phone says "Ready! Come to the bar".
+4. **Picked up** clears it from the TV. Cancel works from any open state.
 
----
+Ticket numbers restart at 001 every day at midnight in the bar's timezone.
+Everything a guest sees is in English, Russian and Uzbek.
 
-## Daily usage
+## Stack
 
-```powershell
-# start everything (after first-time setup)
-docker compose up -d
+| Layer | Tech |
+|---|---|
+| Backend | FastAPI (async), SQLAlchemy 2.0 + asyncpg, Alembic, Pydantic v2 |
+| Realtime | Server-Sent Events, Redis pub/sub across workers (in-process fallback) |
+| Frontend | SvelteKit 2 + Svelte 5, Tailwind CSS v4, server-rendered menu |
+| Auth | JWT bearer for staff |
+| Database | PostgreSQL 15 |
+| Quality | pytest (76), Playwright + axe-core (15), ruff, svelte-check, GitHub Actions |
+| Infra | Docker Compose |
 
-# stop the stack (keeps the DB volume)
-docker compose down
+## Numbers
 
-# WIPE everything including the DB (destructive)
-docker compose down -v
+| Check | Result |
+|---|---|
+| Lighthouse, menu on a simulated 3G phone (prod build) | Performance 91-94, Accessibility 100, SEO 100 |
+| axe-core, WCAG 2.1 A + AA | 0 violations on every screen, in English and Russian |
+| Keyboard only | A ticket goes accept, ready, picked up with Enter alone |
+| Without JavaScript | Menu renders and the language can be switched |
+| Backend coverage | services 96-100%, overall 78% |
 
-# tail logs
-docker compose logs -f backend
-docker compose logs -f frontend
+## Engineering notes
 
-# shell into a container
-docker compose exec backend bash
-docker compose exec frontend sh
+The parts that were harder than they look:
 
-# Postgres prompt
-docker compose exec db psql -U milkshake -d milkshake
-```
+- **Ticket numbers under concurrency.** Two guests ordering at the same
+  instant both read the same `MAX(ticket_number)` and collide. A
+  transaction-scoped Postgres advisory lock, keyed per day, serializes
+  numbering, with a unique constraint as the backstop. A test fires 50
+  orders at once and fails if the lock is removed.
+- **The state machine is enforced server-side.** Illegal moves such as
+  pending to ready, or anything out of a finished order, return 409. The row
+  is locked first, so two staff tapping different buttons can't both win.
+- **No lost events on connect.** Each stream subscribes before it reads its
+  snapshot, so a change that lands mid-query is still delivered. Reconnects
+  get a fresh snapshot instead of replaying history.
+- **Dead connections that look alive.** A proxy can keep the browser's
+  socket open after the backend dies. The server sends a `ping` event every
+  15s, and clients reconnect after 40s of silence.
+- **Streams don't pin database connections.** A session taken through
+  `Depends` lives until the response ends, which for a stream is when the
+  browser leaves. Stream routes use short sessions that close before
+  streaming starts.
+- **One origin.** The SvelteKit server forwards `/api` and `/uploads` to the
+  backend with streaming bodies, so there is no CORS, the backend stays
+  private, and SSE passes straight through.
+- **Language without a flash.** The locale lives in a cookie, so the server
+  renders the right language first time. Translations are a pure function
+  of (locale, key) rather than a global store, which on a server would leak
+  one guest's language into another's request. Plurals use
+  `Intl.PluralRules`, so Russian gets its one/few/many forms.
+- **3G first paint.** Fonts are self-hosted instead of a blocking Google
+  stylesheet, CSS is inlined, and the production server gzips HTML that was
+  44 KB raw. Lighthouse performance went from 81 to 91-94. Event streams are
+  excluded from gzip, since compression buffers them.
+- **Uploads are checked by content.** Files are accepted by their leading
+  bytes, never by the browser's content type or filename, and saved under
+  our own extension, so an HTML file posing as an image can't be served
+  back as a page.
+- **Privacy by audience.** Staff see names and phones. The guest endpoint and
+  stream omit both, and the TV gets ticket numbers only.
 
----
+Design docs: [architecture](docs/ARCHITECTURE.md),
+[business rules](docs/BUSINESS_LOGIC.md), [data model](docs/DATA_MODEL.md),
+[backlog](docs/BACKLOG.md).
 
-## Running tests
+## Run it
 
-The backend has a pytest suite (currently service-layer only — see Phase 6
-in the backlog for the full plan). Tests run inside the backend container
-against an auto-created `milkshake_test` database in the same Postgres.
+Needs Docker with Compose v2. Nothing else on the host.
 
-```powershell
-# all tests
-docker compose exec backend pytest
-
-# one file
-docker compose exec backend pytest tests/test_order_service.py
-
-# stop on first failure, more verbose
-docker compose exec backend pytest -x -vv
-
-# specific test by name
-docker compose exec backend pytest -k "place_order"
-```
-
-Expected baseline today: **18 passed, 1 warning** (the warning is from
-`passlib` — upstream, not ours).
-
----
-
-## Common tasks
-
-### Generate a new JWT secret
-
-```powershell
+```bash
+git clone https://github.com/aegusten/MilkShake.git && cd MilkShake
+cp .env.example .env
+# set POSTGRES_PASSWORD, and JWT_SECRET to 32+ chars:
 python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
 
-### Create / overwrite an admin
-
-```powershell
-# create
-docker compose exec backend python -m app.scripts.create_superuser `
-  --email new@example.com --password NewPass123
-
-# overwrite existing (resets password, re-enables account)
-docker compose exec backend python -m app.scripts.create_superuser `
-  --email new@example.com --password NewPass123 --force
-```
-
-### Re-seed the dev catalog
-
-The seed script is idempotent — running it twice won't duplicate. Useful
-after `docker compose down -v` or when onboarding a teammate.
-
-```powershell
-docker compose exec backend python -m app.scripts.seed_data
-```
-
-### Add a database migration
-
-```powershell
-# generate from model changes
-docker compose exec backend alembic revision --autogenerate `
-  -m "add order status column"
-
-# apply
-docker compose exec backend alembic upgrade head
-
-# roll back one
-docker compose exec backend alembic downgrade -1
-
-# show current revision
-docker compose exec backend alembic current
-```
-
-### Reset the dev database from scratch
-
-```powershell
-docker compose down -v
-docker compose up -d
+docker compose up -d --build
 docker compose exec backend alembic upgrade head
 docker compose exec backend python -m app.scripts.seed_data
 ```
 
-### Hit the API directly
+The seed creates sample drinks and an admin `admin@example.com` /
+`ChangeMe123`. Change it before any real use.
 
-```powershell
-# log in (returns JWT)
-curl -X POST http://localhost:8000/api/admin/login `
-  -H "Content-Type: application/json" `
-  -d '{\"email\":\"you@example.com\",\"password\":\"ChangeMe123\"}'
+| URL | For |
+|---|---|
+| http://localhost:5173 | Guest menu |
+| http://localhost:5173/admin | Staff queue and menu editor |
+| http://localhost:5173/display | Pickup TV |
+| http://localhost:5173/qr | QR code to print or show |
+| http://localhost:8000/docs | API (Swagger) |
 
-# call an admin endpoint with the token
-curl http://localhost:8000/api/admin/orders `
-  -H "Authorization: Bearer <paste-token-here>"
+Containers: Postgres on host port `55432`, Redis (internal only), backend on
+`8000`, SvelteKit dev server on `5173`.
+
+### Production build
+
+```bash
+docker build --target prod -t milkshake-web ./web
+docker run -p 3000:3000 -e BACKEND_URL=http://backend:8000 -e ORIGIN=https://your.domain milkshake-web
 ```
 
-The interactive UI for this is at http://localhost:8000/docs — click
-"Authorize", paste the access_token, and call any endpoint.
+Put TLS in front (Caddy or nginx). `ORIGIN` must be the public URL.
 
----
+## Tests
 
-## Phone / QR access (test on a real device)
+```bash
+docker compose exec backend pytest --cov=app          # backend, 76 tests
+docker compose exec backend ruff check app tests      # lint
 
-The customer flow assumes a phone scanning the bar's QR code. To test it
-end-to-end on your phone:
+# frontend: accessibility, keyboard, no-JS and translation checks
+docker run --rm --ipc=host --network milkshake_default \
+  -e BASE_URL=http://frontend:5173 -v "$PWD/web:/app" -w /app \
+  mcr.microsoft.com/playwright:v1.49.1-jammy sh -c "npm ci && npx playwright test"
+```
 
-1. Find your computer's LAN IP:
-   ```powershell
-   # Windows
-   ipconfig
+CI runs all of it: lint, a migration round trip on an empty database, the
+backend suite, `svelte-check`, the production build, and the Playwright suite
+against the whole stack in Compose.
 
-   # macOS / Linux
-   ifconfig | findstr "inet "
-   ```
-   You're looking for something like `192.168.1.42`.
+## API
 
-2. Tell the frontend to use that IP for API calls. Create
-   `frontend/.env` (gitignored) with:
-   ```
-   VITE_API_BASE=http://192.168.1.42:8000
-   ```
+| Method | Path | Who |
+|---|---|---|
+| `POST` | `/api/orders` | Guest. Returns the ticket |
+| `GET` | `/api/orders/{id}` | Guest, own order |
+| `GET` | `/api/stream/orders/{id}` | Guest, live status (SSE) |
+| `GET` | `/api/display/ready` | TV, ready tickets |
+| `GET` | `/api/stream/display` | TV, live (SSE) |
+| `GET` | `/api/admin/orders?status=` | Staff |
+| `POST` | `/api/admin/orders/{id}/{accept,ready,complete,cancel}` | Staff |
+| `GET` | `/api/stream/admin` | Staff, live (SSE, bearer auth) |
 
-3. Restart the frontend container so Vite picks up the new env var:
-   ```powershell
-   docker compose restart frontend
-   ```
+Menu and upload endpoints are listed in Swagger.
 
-4. On your computer, open `http://192.168.1.42:5173/qr`. Scan the QR with
-   your phone (must be on the same Wi-Fi).
+## Configuration
 
-5. Update `BACKEND_CORS_ORIGINS` in the root `.env` to include the LAN
-   origin so the API accepts requests from the phone:
-   ```
-   BACKEND_CORS_ORIGINS=http://localhost:5173,http://192.168.1.42:5173
-   ```
-   Restart the backend: `docker compose restart backend`.
+| Variable | Where | Default | Notes |
+|---|---|---|---|
+| `JWT_SECRET` | backend | none | Required, 32+ chars |
+| `JWT_ACCESS_TTL_MINUTES` | backend | `480` | One staff shift |
+| `BAR_TIMEZONE` | backend | `Asia/Tashkent` | When ticket numbers reset |
+| `REDIS_URL` | backend | unset | Set to share live events across workers |
+| `BACKEND_URL` | web | `http://localhost:8000` | Where the web server finds the API. Never sent to browsers |
+| `PUBLIC_MENU_URL` | web | request origin | What the QR code points at |
+| `ORIGIN` | web (prod) | none | Public URL, required by the Node server |
 
----
+## Testing on a real phone
 
-## Production deployment (not yet automated)
-
-Production setup is outlined in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ("Deployment topology
-(target)"). Short version:
-
-- Single VPS, Docker Compose, Caddy or nginx in front for TLS.
-- Generate a **fresh** `JWT_SECRET` for production — never reuse dev.
-- Set a strong `POSTGRES_PASSWORD`.
-- Lock `BACKEND_CORS_ORIGINS` down to your real domain (no `localhost`).
-- Nightly `pg_dump` to off-host storage.
-- `docker compose --profile prod` style override file (TBD).
-
-Do **not** deploy without going through Phase 4 (order status flow) and
-Phase 5 (SSE realtime) — those are blockers for a functional bar.
-
----
+Open `http://<your-LAN-IP>:5173/qr` on the computer and scan it with a phone
+on the same Wi-Fi. The web server proxies the API, so there is nothing else
+to configure.
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
-| `port already allocated` on `up` | Another service is using 5173, 8000, or 55432 | Stop the conflicting service, or change host ports in `docker-compose.yml` |
-| Backend log: `password authentication failed for user "milkshake"` | The Postgres volume was initialized with a different password than the current `.env` | `docker compose down -v` then start fresh (loses dev data) |
-| Backend won't start: `ValidationError` mentioning `JWT_SECRET` | `.env` missing or `JWT_SECRET` shorter than 32 chars | Regenerate with `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
-| Frontend page blank for ~10 s | Vite is doing its first compile | Wait, refresh. Check `docker compose logs frontend` |
-| Phone can't reach the menu | `VITE_API_BASE` still points at `localhost` (the phone's own loopback) | Use the host's LAN IP and add it to `BACKEND_CORS_ORIGINS` |
-| `curl` fails with `Connection refused` on `localhost:8000` | Backend not yet running or crashed | `docker compose ps`, then `docker compose logs backend` |
-| Admin token suddenly stops working | 8-hour TTL expired | Log in again. Phase 2.5 (refresh tokens) will fix this in Phase 7. |
-| Tests fail with `got Future attached to a different loop` | pytest-asyncio loop scoping (already handled by `NullPool` in `tests/conftest.py`) | Pull latest; if still broken, ensure `pytest.ini` has `asyncio_mode = auto` |
-| `docker compose exec backend alembic upgrade head` says `Target database is not up to date` | First-run state — schema not yet applied | Run the same command again; if it still fails, check Alembic logs |
-
----
+| Symptom | Fix |
+|---|---|
+| `port already allocated` | Free 5173, 8000 or 55432, or change the host ports in `docker-compose.yml` |
+| `password authentication failed` | The DB volume has an old password. `docker compose down -v` (wipes dev data) |
+| Backend fails on `JWT_SECRET` | Missing or under 32 characters |
+| Edits don't show up in the browser | Docker on Windows and macOS doesn't forward file events. Compose sets `VITE_USE_POLLING=true`; restart the frontend container if you removed it |
+| `Blocked request. This host is not allowed` | Add the hostname to `VITE_ALLOWED_HOSTS` |
+| Staff page logs you out | The token expired after 8 hours, or the admin row was recreated. Log in again |
 
 ## Status
 
-This codebase is **mid-refactor**, on the way to a real customer launch.
-The MVP runs end-to-end today, but several capabilities are still being
-hardened.
-
-### Phases shipped
-
-- **Phase 1** — async backend (asyncpg + `AsyncSession`)
-- **Phase 2** — JWT bearer auth + pydantic-settings + JWT_SECRET validation
-- **Phase 3** — service layer + pytest suite (18 tests, all green)
-
-### Next up
-
-- **Phase 4** — order status state machine (pending → accepted → ready → completed) + 3-digit daily-reset ticket numbers
-- **Phase 5** — Server-Sent Events for live order push to `/admin` and `/display`
-- **Phase 6** — broader test coverage (integration + e2e)
-- **Phase 7** — SvelteKit migration (SSR menu, file-based routing)
-- **Phase 8+** — Tailwind v4, realtime UI, i18n, polish
-
-Full roadmap with acceptance criteria: [docs/BACKLOG.md](docs/BACKLOG.md).
-
----
-
-## Documentation
-
-| Doc | What's in it |
-|---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagram, components, routes, deployment topology |
-| [docs/BUSINESS_LOGIC.md](docs/BUSINESS_LOGIC.md) | Actors, order flow, ticket-numbering rules, state machine |
-| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | ERD, table-by-table reference, invariants |
-| [docs/BACKLOG.md](docs/BACKLOG.md) | All 11 refactor phases + post-MVP feature backlog |
+Done: every phase in [the backlog](docs/BACKLOG.md) except refresh tokens in
+HttpOnly cookies (2.5). Not done: testing on physical iOS and Android devices,
+and a hosted demo.
 
 ## License
 
-Internal project. No public license assigned.
+[MIT](LICENSE)

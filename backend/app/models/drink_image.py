@@ -1,9 +1,21 @@
 # backend/app/models/drink_image.py
 import uuid
-from sqlalchemy import Column, Integer, TEXT, TIMESTAMP, text, ForeignKey, CheckConstraint, UniqueConstraint
+
+from sqlalchemy import (
+    TEXT,
+    TIMESTAMP,
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Integer,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class DrinkImage(Base):
     __tablename__ = "drink_images"
