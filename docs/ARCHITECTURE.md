@@ -50,7 +50,7 @@ flowchart LR
 
 ## Components
 
-### Backend — FastAPI (async)
+### Backend: FastAPI (async)
 
 Single Python service exposing a REST API plus a Server-Sent Events stream.
 Currently sync; **Phase 1** of the refactor migrates to async (`asyncpg` +
@@ -58,16 +58,16 @@ Currently sync; **Phase 1** of the refactor migrates to async (`asyncpg` +
 
 Layers:
 
-- `api/` — HTTP route handlers. Thin — no business logic.
-- `services/` — Business logic (to be introduced in Phase 3). Order lifecycle,
+- `api/`, HTTP route handlers. Thin, no business logic.
+- `services/`, Business logic (to be introduced in Phase 3). Order lifecycle,
   ticket-number allocation, image cropping.
-- `models/` — SQLAlchemy ORM models.
-- `schemas/` — Pydantic request/response models.
-- `db.py` — Async engine + session factory.
-- `realtime.py` — SSE broadcaster backed by Redis pub/sub (Phase 5).
-- `auth.py` — JWT issuance and verification (Phase 2).
+- `models/`, SQLAlchemy ORM models.
+- `schemas/`, Pydantic request/response models.
+- `db.py`, Async engine + session factory.
+- `realtime.py`, SSE broadcaster backed by Redis pub/sub (Phase 5).
+- `auth.py`, JWT issuance and verification (Phase 2).
 
-### Frontend — SvelteKit
+### Frontend: SvelteKit
 
 Server-side rendered for the public menu (fast first paint on slow phone
 networks) and client-side for the admin and display screens. Lives in
@@ -75,18 +75,18 @@ networks) and client-side for the admin and display screens. Lives in
 
 Pages:
 
-- `+page.svelte` (`/`) — Menu, cart, checkout. SSR for first paint.
-- `admin/+page.svelte` — Login + order queue + drink management.
-- `qr/+page.svelte` — Renders the venue QR code.
-- `display/+page.svelte` — Subscribes to SSE, shows ticket numbers that are
+- `+page.svelte` (`/`), Menu, cart, checkout. SSR for first paint.
+- `admin/+page.svelte`, Login + order queue + drink management.
+- `qr/+page.svelte`, Renders the venue QR code.
+- `display/+page.svelte`, Subscribes to SSE, shows ticket numbers that are
   in `ready` status.
 
-### Database — PostgreSQL 15
+### Database: PostgreSQL 15
 
 One schema, managed by Alembic. See [DATA_MODEL.md](DATA_MODEL.md) for the
 full ERD.
 
-### Realtime — Server-Sent Events + Redis
+### Realtime: Server-Sent Events + Redis
 
 When the admin accepts or readies an order, the backend publishes an event
 to Redis. All connected SSE clients (admin panel, `/display`) receive it.

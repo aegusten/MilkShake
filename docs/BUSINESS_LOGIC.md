@@ -14,7 +14,7 @@ not described here, treat it as undefined and ask before implementing.
 | TV `/qr` screen | No | Browser kiosk on TV |
 | TV `/display` screen | No | Browser kiosk on TV |
 
-There is no distinction between "staff" and "owner" in v1 — both share the
+There is no distinction between "staff" and "owner" in v1, both share the
 admin role.
 
 ## Order placement flow
@@ -54,7 +54,7 @@ sequenceDiagram
     API->>DB: status = ready, ready_at = now
     API->>BUS: publish order.ready
     BUS-->>TV: order.ready (#042)
-    TV-->>C: "Order #042 — ready for pickup"
+    TV-->>C: "Order #042, ready for pickup"
 
     C-->>A: Customer collects drinks at counter
     A->>API: POST /api/admin/orders/{id}/complete
@@ -84,7 +84,7 @@ sequenceDiagram
 - **Authentication required.** Every state-changing admin endpoint requires
   a valid JWT in the `Authorization: Bearer` header.
 - **Status transitions are enforced by the backend**, not the UI. The state
-  machine below is authoritative — invalid transitions return 409.
+  machine below is authoritative, invalid transitions return 409.
 - **Cancellation is permanent.** Cancelled orders cannot be re-opened. A new
   ticket would be issued instead.
 - **No editing of existing orders.** Once placed, line items are immutable.
@@ -96,7 +96,7 @@ sequenceDiagram
 - Numbers **reset to `#001` at local midnight** (bar's timezone, configured
   via `BAR_TIMEZONE` env var; defaults to `Asia/Tashkent` based on the
   current locale of the UI).
-- The database stores both `ticket_number` (integer 1–999) and
+- The database stores both `ticket_number` (integer 1-999) and
   `ticket_date` (DATE in bar timezone). The pair is `UNIQUE`.
 - **Allocation is race-safe.** The backend uses an advisory lock or a
   per-day sequence; concurrent orders within the same millisecond cannot
@@ -126,14 +126,14 @@ stateDiagram-v2
 | From | To | Trigger | Allowed? |
 |---|---|---|---|
 | pending | accepted | Admin clicks "Accept" | Yes |
-| pending | ready | — | No (must go through accepted) |
+| pending | ready |, | No (must go through accepted) |
 | pending | cancelled | Admin clicks "Cancel" | Yes |
 | accepted | ready | Admin clicks "Ready" | Yes |
 | accepted | cancelled | Admin clicks "Cancel" | Yes |
 | ready | completed | Admin clicks "Picked up" | Yes |
 | ready | cancelled | Admin clicks "Cancel" | Yes (customer abandoned) |
-| completed | * | — | No (terminal) |
-| cancelled | * | — | No (terminal) |
+| completed | * |, | No (terminal) |
+| cancelled | * |, | No (terminal) |
 
 ## TV `/display` rules
 
@@ -143,7 +143,7 @@ stateDiagram-v2
   notifications at the top).
 - **Auto-clears at midnight** alongside the ticket counter reset.
 - If the SSE connection drops, the page automatically reconnects and fetches
-  the current `ready` list on reconnect — never shows stale data.
+  the current `ready` list on reconnect, never shows stale data.
 - The page should be safe to run unattended for days in a browser kiosk: no
   modals, no errors visible to customers, no auto-refresh that wipes the
   list mid-render.
@@ -164,7 +164,7 @@ stateDiagram-v2
 The customer-facing menu supports three languages: English, Russian,
 Uzbek. The admin panel and TV screens are English-only in v1.
 
-Language is **client-side preference only** — not stored in the database
+Language is **client-side preference only**, not stored in the database
 or per-user.
 
 ## Out of scope (v1)

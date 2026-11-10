@@ -1,5 +1,5 @@
 <script>
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import {
     createOrder,
     fetchDrinks,
@@ -29,9 +29,14 @@
     }
   };
 
-  const followOrder = (order) => {
+  const followOrder = async (order) => {
     myOrder = order;
     unfollow();
+    // The card sits below the whole menu, out of sight on a phone.
+    await tick();
+    document
+      .querySelector("[data-testid=ticket-card]")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
     if (FINISHED.includes(order.status)) {
       remember(null);
       return;
