@@ -1,15 +1,18 @@
 <script>
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import {
-    fetchAdminOrders,
+    changeOrderStatus,
     isAdminLoggedIn,
     loginAdmin,
     logoutAdmin,
+    streamAdminOrders,
   } from "../../api/index.js";
   import AdminOrders from "./AdminOrders.svelte";
   import AdminDrinks from "./AdminDrinks.svelte";
 
   export let pathLabel = "";
+
+  const OPEN = ["pending", "accepted", "ready"];
 
   let adminLoggedIn = false;
   let adminEmail = "";
@@ -19,31 +22,60 @@
 
   let adminOrders = [];
   let ordersError = "";
-  let ordersLoading = false;
+  let streamStatus = "connecting";
+  let busyIds = new Set();
+  let stopStream = null;
+
+  // Replace by id, drop orders that left the open states, keep oldest first
+  // so the next ticket to make is at the top.
+  const upsertOrder = (order) => {
+    const rest = adminOrders.filter((o) => o.id !== order.id);
+    adminOrders = (OPEN.includes(order.status) ? [...rest, order] : rest).sort(
+      (a, b) => new Date(a.created_at) - new Date(b.created_at)
+    );
+  };
 
   const handleUnauthorized = (message = "Session expired. Please log in again.") => {
+    stopStream?.();
+    stopStream = null;
     adminLoggedIn = false;
     adminOrders = [];
     adminError = message;
   };
 
-  const loadOrders = async () => {
+  const startStream = () => {
+    stopStream?.();
+    streamStatus = "connecting";
+    stopStream = streamAdminOrders({
+      onEvent: ({ event, data }) => {
+        if (event === "snapshot") {
+          adminOrders = [];
+          data.orders.forEach(upsertOrder);
+        } else if (event === "order") {
+          upsertOrder(data.order);
+        }
+      },
+      onStatus: (status) => (streamStatus = status),
+      onUnauthorized: () => handleUnauthorized(),
+    });
+  };
+
+  const handleAction = async (order, action) => {
     ordersError = "";
-    if (!adminLoggedIn) {
-      return;
-    }
-    ordersLoading = true;
-    const response = await fetchAdminOrders();
-    ordersLoading = false;
+    busyIds = new Set([...busyIds, order.id]);
+    const response = await changeOrderStatus(order.id, action);
+    busyIds.delete(order.id);
+    busyIds = new Set(busyIds);
     if (response.status === 401) {
       handleUnauthorized();
       return;
     }
     if (!response.ok) {
-      ordersError = response.data?.detail || "Unable to load orders.";
+      ordersError = response.data?.detail || "Could not update the order.";
       return;
     }
-    adminOrders = response.data || [];
+    // The stream will echo this too; applying it now keeps the button snappy.
+    upsertOrder(response.data);
   };
 
   const handleLogin = async () => {
@@ -58,10 +90,12 @@
     }
     adminLoggedIn = true;
     adminPassword = "";
-    await loadOrders();
+    startStream();
   };
 
   const handleLogout = () => {
+    stopStream?.();
+    stopStream = null;
     logoutAdmin();
     adminLoggedIn = false;
     adminOrders = [];
@@ -71,9 +105,11 @@
   onMount(() => {
     if (isAdminLoggedIn()) {
       adminLoggedIn = true;
-      loadOrders();
+      startStream();
     }
   });
+
+  onDestroy(() => stopStream?.());
 </script>
 
 <div class="admin-shell admin-shell-wide">
@@ -160,8 +196,9 @@
         <AdminOrders
           {adminOrders}
           {ordersError}
-          {ordersLoading}
-          onRefresh={loadOrders}
+          {streamStatus}
+          {busyIds}
+          onAction={handleAction}
         />
       {:else}
         <AdminDrinks

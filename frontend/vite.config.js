@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
     plugins: [svelte()],
     server: {
       host: true,
+      // Docker bind mounts on Windows and macOS do not deliver file-change
+      // events, so the dev server would keep serving stale modules.
+      watch: env.VITE_USE_POLLING === 'true' ? { usePolling: true, interval: 300 } : undefined,
       proxy: {
         '/api': {
           target: proxyTarget,

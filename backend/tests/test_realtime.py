@@ -80,14 +80,14 @@ async def test_stream_subscribes_before_reading_the_snapshot(in_memory_broadcast
     await stream.aclose()
 
 
-async def test_idle_stream_sends_heartbeat_comment(in_memory_broadcaster):
+async def test_idle_stream_sends_ping_event(in_memory_broadcaster):
     async def snapshot():
         return []
 
     stream = open_stream("chan", snapshot, _never_disconnected, heartbeat=0.05)
     await anext(stream)
 
-    assert await asyncio.wait_for(anext(stream), 1) == ": ping\n\n"
+    assert await asyncio.wait_for(anext(stream), 1) == "event: ping\ndata: {}\n\n"
     await stream.aclose()
 
 

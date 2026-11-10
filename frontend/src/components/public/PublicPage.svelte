@@ -1,6 +1,76 @@
 <script>
-  import { onMount } from "svelte";
-  import { fetchItemMasters, fetchDrinks, createOrder } from "../../api/index.js";
+  import { onDestroy, onMount } from "svelte";
+  import {
+    createOrder,
+    fetchDrinks,
+    fetchGuestOrder,
+    fetchItemMasters,
+    liveEvents,
+  } from "../../api/index.js";
+
+  // The guest's own order, followed live until it is picked up. Its id is
+  // kept in localStorage so a reload or a locked phone does not lose it.
+  const LAST_ORDER_KEY = "ms_last_order";
+  const FINISHED = ["completed", "cancelled"];
+  let myOrder = null;
+  let stopFollowing = null;
+
+  const unfollow = () => {
+    stopFollowing?.();
+    stopFollowing = null;
+  };
+
+  const remember = (id) => {
+    try {
+      if (id) localStorage.setItem(LAST_ORDER_KEY, id);
+      else localStorage.removeItem(LAST_ORDER_KEY);
+    } catch (error) {
+      // Private mode or blocked storage. Following still works this session.
+    }
+  };
+
+  const followOrder = (order) => {
+    myOrder = order;
+    unfollow();
+    if (FINISHED.includes(order.status)) {
+      remember(null);
+      return;
+    }
+    remember(order.id);
+    stopFollowing = liveEvents(`/api/stream/orders/${order.id}`, {
+      order: (data) => {
+        myOrder = data.order;
+        if (FINISHED.includes(data.order.status)) {
+          unfollow();
+          remember(null);
+        }
+      },
+    });
+  };
+
+  const resumeOrder = async () => {
+    let id = null;
+    try {
+      id = localStorage.getItem(LAST_ORDER_KEY);
+    } catch (error) {
+      return;
+    }
+    if (!id) return;
+    const response = await fetchGuestOrder(id);
+    if (response.ok && !FINISHED.includes(response.data.status)) {
+      followOrder(response.data);
+    } else {
+      remember(null);
+    }
+  };
+
+  const startNewOrder = () => {
+    unfollow();
+    myOrder = null;
+    orderMessage = "";
+  };
+
+  onDestroy(unfollow);
 
   let drinks = [];
   let itemMasters = [];
@@ -49,6 +119,16 @@
       itemMasters: {
         all: "All",
       },
+      yourTicket: "Your ticket",
+      watchScreen: "Watch the screen at the bar. This page updates by itself.",
+      newOrder: "New order",
+      statuses: {
+        pending: "Order received",
+        accepted: "Being made",
+        ready: "Ready! Come to the bar",
+        completed: "Picked up. Enjoy!",
+        cancelled: "Cancelled. Please ask at the bar.",
+      },
       language: "Language",
     },
     ru: {
@@ -85,6 +165,16 @@
       itemMasters: {
         all: "Все",
       },
+      yourTicket: "Ваш номер",
+      watchScreen: "Следите за экраном у бара. Страница обновляется сама.",
+      newOrder: "Новый заказ",
+      statuses: {
+        pending: "Заказ принят",
+        accepted: "Готовим",
+        ready: "Готово! Подходите к бару",
+        completed: "Выдан. Приятного аппетита!",
+        cancelled: "Отменён. Пожалуйста, обратитесь к бару.",
+      },
       language: "Язык",
     },
     uz: {
@@ -120,6 +210,16 @@
       adminAccess: "Admin kirish: /admin (to'g'ridan-to'g'ri URL)",
       itemMasters: {
         all: "Barchasi",
+      },
+      yourTicket: "Sizning raqamingiz",
+      watchScreen: "Bar yonidagi ekranni kuzating. Sahifa o'zi yangilanadi.",
+      newOrder: "Yangi buyurtma",
+      statuses: {
+        pending: "Buyurtma qabul qilindi",
+        accepted: "Tayyorlanmoqda",
+        ready: "Tayyor! Barga keling",
+        completed: "Olib ketildi. Yoqimli ishtaha!",
+        cancelled: "Bekor qilindi. Iltimos, barga murojaat qiling.",
       },
       language: "Til",
     },
@@ -209,7 +309,8 @@
           orderError = response.data?.detail || copy[lang].orderFailed;
           return;
         }
-        orderMessage = copy[lang].orderPlaced;
+        orderMessage = "";
+        followOrder(response.data);
         cart = [];
         guestName = "";
         guestPhone = "";
@@ -228,6 +329,7 @@
 
   onMount(() => {
     loadCatalog();
+    resumeOrder();
   });
 </script>
 
@@ -366,6 +468,20 @@
         <h2>{copy[lang].orderTitle}</h2>
         <p>{copy[lang].orderBody}</p>
       </div>
+      {#if myOrder}
+        <div class={`ticket-card is-${myOrder.status}`} data-testid="ticket-card">
+          <span class="ticket-label">{copy[lang].yourTicket}</span>
+          <span class="ticket-number">#{myOrder.ticket}</span>
+          <strong class="ticket-status">{copy[lang].statuses[myOrder.status]}</strong>
+          {#if !FINISHED.includes(myOrder.status)}
+            <span class="ticket-hint">{copy[lang].watchScreen}</span>
+          {:else}
+            <button class="ghost" type="button" on:click={startNewOrder}>
+              {copy[lang].newOrder}
+            </button>
+          {/if}
+        </div>
+      {/if}
       <div class="cart">
         <div class="order-fields">
           <label>
@@ -436,3 +552,43 @@
     <span>{copy[lang].adminAccess}</span>
   </footer>
 </div>
+
+<style>
+  .ticket-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    padding: 24px;
+    margin-bottom: 20px;
+    border-radius: 20px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    border: 3px solid var(--fog);
+  }
+  .ticket-label {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+  }
+  .ticket-number {
+    font-family: var(--font-display);
+    font-size: 4.5rem;
+    line-height: 1;
+  }
+  .ticket-hint {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .ticket-card.is-ready {
+    border-color: #22c55e;
+  }
+  .ticket-card.is-ready .ticket-number {
+    color: #16a34a;
+  }
+  .ticket-card.is-cancelled {
+    border-color: var(--accent);
+  }
+</style>

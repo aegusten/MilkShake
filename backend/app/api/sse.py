@@ -11,6 +11,7 @@ from app.realtime import get_broadcaster
 
 HEARTBEAT_SECONDS = 15.0
 RETRY_MS = 3000
+PING = "event: ping\ndata: {}\n\n"
 
 
 def frame(event_id: int, event: dict[str, Any]) -> str:
@@ -46,8 +47,12 @@ async def open_stream(
             except asyncio.TimeoutError:
                 if await is_disconnected():
                     return
-                # Comment line. Keeps proxies from closing an idle stream.
-                yield ": ping\n\n"
+                # A named event rather than an SSE comment, because browsers
+                # never surface comments to page code. Clients treat a
+                # silence much longer than this as a dead connection: a proxy
+                # can keep the browser's socket open after the backend is
+                # gone, and then nothing else would ever tell them.
+                yield PING
                 continue
             if event is None:
                 return

@@ -3,6 +3,7 @@
   import AdminPage from "./components/admin/AdminPage.svelte";
   import PublicPage from "./components/public/PublicPage.svelte";
   import QrPage from "./components/public/QrPage.svelte";
+  import DisplayPage from "./components/public/DisplayPage.svelte";
 
   let route = "public";
   let pathLabel = "";
@@ -18,6 +19,10 @@
       route = "qr";
       return;
     }
+    if (path.startsWith("/display")) {
+      route = "display";
+      return;
+    }
     route = "public";
   };
 
@@ -30,6 +35,8 @@
   <AdminPage {pathLabel} />
 {:else if route === "qr"}
   <QrPage />
+{:else if route === "display"}
+  <DisplayPage />
 {:else}
   <PublicPage />
 {/if}
