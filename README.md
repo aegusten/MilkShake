@@ -34,7 +34,7 @@ Everything a guest sees is in English, Russian and Uzbek.
 | Frontend | SvelteKit 2 + Svelte 5, Tailwind CSS v4, server-rendered menu |
 | Auth | JWT bearer for staff |
 | Database | PostgreSQL 15 |
-| Quality | pytest (76), Playwright + axe-core (16), ruff, svelte-check, GitHub Actions |
+| Quality | pytest (76), Playwright + axe-core (15), ruff, svelte-check, GitHub Actions |
 | Infra | Docker Compose |
 
 ## Numbers
