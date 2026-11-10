@@ -1,5 +1,3 @@
-import os
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -17,6 +15,7 @@ from app.services.errors import (
     NotFoundError,
     UnauthorizedError,
 )
+from app.services.upload_service import UPLOAD_DIR
 
 settings = get_settings()
 
@@ -30,9 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-uploads_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
-os.makedirs(uploads_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.exception_handler(NotFoundError)
