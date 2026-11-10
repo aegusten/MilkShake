@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* One self-hosted display font for the brand; body text uses the system UI
+   font. Loading from Google added a render-blocking stylesheet on another
+   origin (about 1.5s of first paint on 3G), and three body weights were
+   another 37 KB racing the first paint. */
+@import "@fontsource/bebas-neue/400.css";
+
+/* Design tokens. Every color pair used for text was checked for WCAG AA
+   (4.5:1 for body text, 3:1 for large display text). */
+@theme {
+  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  --color-ink: #0c0c0d;
+  --color-muted: #55555c; /* 7.1:1 on white */
+  --color-fog: #f3f3f4;
+  --color-line: #e2e2e6;
+  --color-card: #ffffff;
+  --color-canvas: #ededf0;
+
+  /* Brand red. Too light for white body text (3.6:1), so it is only used
+     for large display type and fills behind dark text. */
+  --color-accent: #ff3b30;
+  /* Darker red for buttons and small text on white: 4.9:1. */
+  --color-accent-strong: #c8251b;
+
+  --color-ok: #15803d; /* 5.0:1 on white */
+  --color-warn: #b45309;
+
+  --color-tv: #0c0c0d;
+  --color-tv-tile: #1c1c1f;
+  --color-tv-text: #f5f5f5;
+  --color-tv-muted: #a1a1a8; /* 7.6:1 on the TV background */
+
+  --radius-card: 1.25rem;
+  --shadow-card: 0 20px 50px rgb(12 12 13 / 0.1);
+
+  --animate-pop: pop 380ms ease-out;
+  @keyframes pop {
+    from {
+      transform: scale(0.85);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-body text-ink antialiased;
+  }
+
+  /* One focus style everywhere, visible on both light and dark screens. */
+  :focus-visible {
+    outline: 3px solid var(--color-accent-strong);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Base button. 44px tall so every tap target meets the touch-size guideline. */
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@layer components {
+  .btn-primary {
+    @apply btn bg-ink text-white hover:bg-black;
+  }
+  .btn-accent {
+    @apply btn bg-accent-strong text-white hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-card text-ink hover:bg-fog;
+  }
+  .btn-danger {
+    @apply btn border border-line bg-card text-accent-strong hover:bg-red-50;
+  }
+  .card {
+    @apply rounded-card bg-card shadow-card;
+  }
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-muted;
+  }
+  .label {
+    @apply flex flex-col gap-1.5 text-sm font-semibold;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-line;
+  }
+}
